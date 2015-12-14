@@ -28,22 +28,23 @@ public class Thermometer {
 	@Value("${tinkerforge.bricklet.thermometer.uid}")
 	private String uid;
 
-	@Value("${tinkerforge.bricklet.thermometer.debounce}")
-	private int debounce;
+	@Value("${tinkerforge.bricklet.thermometer.callbackperiod}")
+	private long callbackperiod;
 
 	private BrickletTemperature temperature;
 
 	@PostConstruct
 	public void init() {
 		temperature = new BrickletTemperature(uid, ipcon);
+		
 		temperature.addTemperatureListener((temperature) -> {
 			sender.sendMessage("temperature", String.valueOf(temperature));
 		});
 		logger.info("Thermometer initilized");
 		try {
-			temperature.setDebouncePeriod(debounce);
+			temperature.setTemperatureCallbackPeriod(callbackperiod);
 		} catch (TimeoutException | NotConnectedException e) {
-			logger.error("Error setting debounce", e);
+			logger.error("Error setting callbackperiod", e);
 		}
 	}
 }

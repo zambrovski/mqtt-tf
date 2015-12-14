@@ -18,32 +18,32 @@ import de.techjava.mqtt.tf.comm.MqttSender;
 @Component
 public class Barometer {
 
-	private Logger logger = LoggerFactory.getLogger(Barometer.class);
-	@Autowired
-	private IPConnection ipcon;
+    private Logger logger = LoggerFactory.getLogger(Barometer.class);
+    @Autowired
+    private IPConnection ipcon;
 
-	@Autowired
-	private MqttSender sender;
+    @Autowired
+    private MqttSender sender;
 
-	@Value("${tinkerforge.bricklet.barometer.uid}")
-	private String uid;
+    @Value("${tinkerforge.bricklet.barometer.uid}")
+    private String uid;
 
-	@Value("${tinkerforge.bricklet.barometer.debounce}")
-	private int debounce;
+    @Value("${tinkerforge.bricklet.barometer.callbackperiod}")
+    private long callbackperiod;
 
-	private BrickletBarometer barometer;
+    private BrickletBarometer barometer;
 
-	@PostConstruct
-	public void init() {
-		barometer = new BrickletBarometer(uid, ipcon);
-		barometer.addAirPressureListener((airPressure) -> {
-			sender.sendMessage("pressure", String.valueOf(airPressure));
-		});
-		logger.info("Barometer initilized");
-		try {
-			barometer.setDebouncePeriod(debounce);
-		} catch (TimeoutException | NotConnectedException e) {
-			logger.error("Error setting debounce", e);
-		}
-	}
+    @PostConstruct
+    public void init() {
+        barometer = new BrickletBarometer(uid, ipcon);
+        barometer.addAirPressureListener((airPressure) -> {
+            sender.sendMessage("pressure", String.valueOf(airPressure));
+        });
+        logger.info("Barometer initilized");
+        try {
+            barometer.setAirPressureCallbackPeriod(callbackperiod);
+        } catch (TimeoutException | NotConnectedException e) {
+            logger.error("Error setting callbackperiod", e);
+        }
+    }
 }
