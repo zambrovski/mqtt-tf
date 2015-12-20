@@ -29,7 +29,7 @@ public class Hygrometer {
 	private MqttSender sender;
 	@TinkerForgeUid
 	private String uid;
-	@Value("${tinkerforge.bricklet.hygrometer.callbackperiod ?: 1000}")
+	@Value("${tinkerforge.bricklet.hygrometer.callbackperiod?: 10000}")
 	private long callbackperiod;
 
 	private BrickletHumidity hygrometer;

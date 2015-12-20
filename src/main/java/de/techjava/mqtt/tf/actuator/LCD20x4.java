@@ -32,6 +32,8 @@ public class LCD20x4 extends MqttCallbackAdapter {
 	@Autowired
 	private MqttReceiver receiver;
 	@Autowired
+	TinkerForgeInitializerAspect initializer;
+	@Autowired
 	private MqttSender sender;
 	@TinkerForgeUid
 	private String uid;
@@ -40,6 +42,8 @@ public class LCD20x4 extends MqttCallbackAdapter {
 
 	@PostConstruct
 	public void init() {
+		initializer.initalizeComponent(this);
+		
 		Objects.requireNonNull(uid, "UID must not be null");
 		Objects.requireNonNull(uid, "IP Connection must not be null");
 		lcd = new BrickletLCD20x4(uid, ipcon);

@@ -31,7 +31,7 @@ public class Barometer {
 	@TinkerForgeUid
 	private String uid;
 
-	@Value("${tinkerforge.bricklet.barometer.callbackperiod ?: 1000}")
+	@Value("${tinkerforge.bricklet.barometer.callbackperiod?: 10000}")
 	private long callbackperiod;
 
 	private BrickletBarometer barometer;

@@ -29,7 +29,7 @@ public class Scale {
 	private TinkerForgeInitializerAspect initializer;
 	@TinkerForgeUid
 	private String uid;
-	@Value("#{tinkerforge.bricklet.scale.callbackperiod ?: 1000}")
+	@Value("#{tinkerforge.bricklet.scale.callbackperiod?: 500}")
 	private long callbackperiod;
 
 	private BrickletLoadCell load;

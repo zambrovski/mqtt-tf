@@ -15,7 +15,7 @@ import de.techjava.mqtt.tf.comm.MqttSender;
 /**
  * @author Thorsten Pohl
  */
-//@Component
+// @Component
 public class TemperatureChangedListener extends MqttCallbackAdapter {
 
 	private Logger logger = LoggerFactory.getLogger(TemperatureChangedListener.class);

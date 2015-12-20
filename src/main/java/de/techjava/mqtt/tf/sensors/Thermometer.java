@@ -33,11 +33,13 @@ public class Thermometer {
 	@TinkerForgeUid
 	private String uid;
 
-	@Value("${tinkerforge.bricklet.thermometer.callbackperiod ?: 1000}")
+	@Value("${tinkerforge.bricklet.thermometer.callbackperiod?: 10000}")
 	private long callbackperiod;
 
 	private BrickletTemperature temperature;
 
+	
+	
 	@PostConstruct
 	public void init() {
 		initializer.initalizeComponent(this);

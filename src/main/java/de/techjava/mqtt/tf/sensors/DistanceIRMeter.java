@@ -29,7 +29,7 @@ public class DistanceIRMeter {
 	private MqttSender sender;
 	@TinkerForgeUid
 	private String uid;
-	@Value("${tinkerforge.bricklet.distance.ir.callbackperiod ?: 1000}")
+	@Value("${tinkerforge.bricklet.distance.ir.callbackperiod?: 500}")
 	private long callbackperiod;
 
 	private BrickletDistanceIR distance;

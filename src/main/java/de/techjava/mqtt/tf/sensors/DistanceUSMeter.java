@@ -29,14 +29,14 @@ public class DistanceUSMeter {
 	private MqttSender sender;
 	@TinkerForgeUid
 	private String uid;
-	@Value("${tinkerforge.bricklet.distance.us.callbackperiod ?: 1000}")
+	@Value("${tinkerforge.bricklet.distance.us.callbackperiod?: 500}")
 	private long callbackperiod;
 
 	private BrickletDistanceUS distance;
 
 	@PostConstruct
 	public void init() {
-		 initializer.initalizeComponent(this);
+		initializer.initalizeComponent(this);
 		distance = new BrickletDistanceUS(uid, ipcon);
 
 		distance.addDistanceListener((distance) -> {

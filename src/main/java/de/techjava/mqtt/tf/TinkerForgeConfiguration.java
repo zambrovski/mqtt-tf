@@ -59,6 +59,7 @@ public class TinkerForgeConfiguration {
 			logger.info("Connected.");
 		} catch (AlreadyConnectedException | IOException e) {
 			logger.error("Error establishing connection", e);
+			System.exit(1);
 		}
 	}
 
