@@ -7,9 +7,11 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @Configuration
 @EnableAutoConfiguration
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 @ComponentScan
 public class Starter {
 
@@ -18,8 +20,7 @@ public class Starter {
 	public static void main(final String[] args) {
 		final ConfigurableApplicationContext applicationContext = SpringApplication.run(Starter.class, args);
 		applicationContext.addApplicationListener((event) -> {
-			
+
 		});
 	}
-
 }

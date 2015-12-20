@@ -31,9 +31,9 @@ public class MqttConfiguration {
 			client = new MqttClient(broker, clientId, persistence);
 			MqttConnectOptions connOpts = new MqttConnectOptions();
 			connOpts.setCleanSession(true);
-			logger.info("Connecting to broker: " + broker);
+			logger.info("Connecting to broker: {}...", broker);
 			client.connect(connOpts);
-			logger.info("Connected");
+			logger.info("Connected.");
 		} catch (MqttException e) {
 			logger.error("Error establishing MQTT connection", e);
 		}

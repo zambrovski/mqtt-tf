@@ -12,6 +12,8 @@ import com.tinkerforge.AlreadyConnectedException;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.IPConnectionBase;
 
+import de.techjava.mqtt.tf.util.TinkerForgeInitializerAspect;
+
 @Configuration
 public class TinkerForgeConfiguration {
 
@@ -23,6 +25,11 @@ public class TinkerForgeConfiguration {
 	private int port;
 
 	final IPConnection ipConnection = new IPConnection();
+
+	@Bean
+	public TinkerForgeInitializerAspect getTinkerForgeInitializerAspect() {
+		return new TinkerForgeInitializerAspect();
+	}
 
 	@Bean
 	public IPConnection getIPConnection() {
@@ -47,12 +54,12 @@ public class TinkerForgeConfiguration {
 	 */
 	private void connect() {
 		try {
+			logger.info("Connecting to TinkerForge: {}:{}...", host, port);
 			ipConnection.connect(host, port);
+			logger.info("Connected.");
 		} catch (AlreadyConnectedException | IOException e) {
 			logger.error("Error establishing connection", e);
 		}
 	}
-	
-	
 
 }

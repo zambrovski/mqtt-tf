@@ -18,13 +18,13 @@ public class MqttSender {
 	private MqttClient client;
 
 	@Value("${mqtt.qos}")
-	int qos;
+	private int qos;
 
 	@Value("${mqtt.topic.prefix}")
-	String topicPrefix;
+	private String topicPrefix;
 
 	public void sendMessage(final String topic, final String content) {
-		logger.info("Publishing message to {}: {}", topic, content);
+		logger.trace("Publishing message to {}: {}", topic, content);
 
 		final MqttMessage message = new MqttMessage(content.getBytes());
 		message.setQos(qos);
@@ -34,7 +34,7 @@ public class MqttSender {
 			logger.error("Error sending message", e);
 		}
 
-		logger.info("Message published");
+		logger.trace("Message published");
 	}
 
 }

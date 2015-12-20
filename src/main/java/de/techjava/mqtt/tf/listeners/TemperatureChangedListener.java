@@ -2,58 +2,36 @@ package de.techjava.mqtt.tf.listeners;
 
 import javax.annotation.PostConstruct;
 
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import de.techjava.mqtt.tf.comm.MqttListener;
+import de.techjava.mqtt.tf.comm.MqttCallbackAdapter;
+import de.techjava.mqtt.tf.comm.MqttReceiver;
+import de.techjava.mqtt.tf.comm.MqttSender;
 
 /**
- * @author Thorsten Pohl, U412681
+ * @author Thorsten Pohl
  */
-@Component
-public class TemperatureChangedListener implements MqttCallback {
+//@Component
+public class TemperatureChangedListener extends MqttCallbackAdapter {
 
-    private Logger logger = LoggerFactory.getLogger(TemperatureChangedListener.class);
-    @Autowired
-    private MqttListener listener;
+	private Logger logger = LoggerFactory.getLogger(TemperatureChangedListener.class);
+	@Autowired
+	private MqttReceiver listener;
+	@Autowired
+	private MqttSender sender;
 
-    /**
-     * 
-     */
-    public TemperatureChangedListener() {
+	@PostConstruct
+	public void init() {
+		listener.addListener("temperature", this);
+	}
 
-    }
-
-    @PostConstruct
-    public void init() {
-        logger.info("INIT LISTENER");
-        try {
-            listener.registerListener("temperature", this);
-        } catch (MqttException e) {
-            logger.error("Cannot register Listener", e);
-        }
-    }
-
-    @Override
-    public void connectionLost(Throwable arg0) {
-
-    }
-
-    @Override
-    public void deliveryComplete(IMqttDeliveryToken arg0) {
-
-    }
-
-    @Override
-    public void messageArrived(String topic, MqttMessage message) throws Exception {
-        logger.info(topic);
-        logger.info("Temperature {}", message.toString());
-
-    }
+	@Override
+	public void messageArrived(String topic, MqttMessage message) throws Exception {
+		// sender.sendMessage("lcd/text1", message.toString());
+		logger.info("Temperature on {} is {}", topic, message.toString());
+	}
 }
