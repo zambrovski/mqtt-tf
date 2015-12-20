@@ -21,8 +21,8 @@ import de.techjava.mqtt.tf.util.TinkerForgeUid;
 public class DistanceUSMeter {
 
 	private Logger logger = LoggerFactory.getLogger(DistanceUSMeter.class);
-//	@Autowired
-//	private TinkerForgeInitializer initializer;
+	@Autowired
+	private TinkerForgeInitializerAspect initializer;
 	@Autowired
 	private IPConnection ipcon;
 	@Autowired
@@ -36,7 +36,7 @@ public class DistanceUSMeter {
 
 	@PostConstruct
 	public void init() {
-//		initializer.initalizeComponent(this);
+		 initializer.initalizeComponent(this);
 		distance = new BrickletDistanceUS(uid, ipcon);
 
 		distance.addDistanceListener((distance) -> {

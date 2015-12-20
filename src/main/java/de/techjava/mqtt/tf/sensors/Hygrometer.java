@@ -23,8 +23,8 @@ public class Hygrometer {
 	private Logger logger = LoggerFactory.getLogger(Hygrometer.class);
 	@Autowired
 	private IPConnection ipcon;
-//	@Autowired
-//	private TinkerForgeInitializer initializer;
+	@Autowired
+	private TinkerForgeInitializerAspect initializer;
 	@Autowired
 	private MqttSender sender;
 	@TinkerForgeUid
@@ -36,7 +36,7 @@ public class Hygrometer {
 
 	@PostConstruct
 	public void init() {
-//		initializer.initalizeComponent(this);
+		initializer.initalizeComponent(this);
 		hygrometer = new BrickletHumidity(uid, ipcon);
 		hygrometer.addHumidityListener((humidity) -> {
 			sender.sendMessage("humidity", String.valueOf(humidity));

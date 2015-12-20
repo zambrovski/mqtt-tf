@@ -18,7 +18,7 @@ public class TinkerForgeInitializerAspect {
 
 	private static final Logger logger = LoggerFactory.getLogger(TinkerForgeInitializerAspect.class);
 
-	@Around("execution(public void init()) && @target(de.techjava.mqtt.tf.util.TinkerForgeComponent) && @annotation(javax.annotation.PostConstruct)")
+	@Around("@target(de.techjava.mqtt.tf.util.TinkerForgeComponent) && @annotation(javax.annotation.PostConstruct)")
 	public void beforeTinkerForgeComponentPostConstruct(final ProceedingJoinPoint pjp) {
 		Object bean = pjp.getTarget();
 		initalizeComponent(bean);

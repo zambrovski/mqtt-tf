@@ -5,8 +5,6 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import com.tinkerforge.BrickMaster;
 import com.tinkerforge.IPConnection;
@@ -22,8 +20,8 @@ public class MasterBrick {
 
 	@Autowired
 	private IPConnection ipcon;
-//	@Autowired
-//	private TinkerForgeInitializer initializer;
+	@Autowired
+	private TinkerForgeInitializerAspect initializer;
 
 	private BrickMaster master;
 
@@ -32,7 +30,7 @@ public class MasterBrick {
 
 	@PostConstruct
 	public void init() {
-//		initializer.initalizeComponent(this);
+		initializer.initalizeComponent(this);
 		master = new BrickMaster(uid, ipcon);
 		logger.info("Master Brick initilized");
 	}

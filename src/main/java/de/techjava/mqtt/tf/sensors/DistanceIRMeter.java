@@ -23,8 +23,8 @@ public class DistanceIRMeter {
 	private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
 	@Autowired
 	private IPConnection ipcon;
-//	@Autowired
-//	private TinkerForgeInitializer initializer;
+	@Autowired
+	private TinkerForgeInitializerAspect initializer;
 	@Autowired
 	private MqttSender sender;
 	@TinkerForgeUid
@@ -36,7 +36,7 @@ public class DistanceIRMeter {
 
 	@PostConstruct
 	public void init() {
-//		initializer.initalizeComponent(this);
+		initializer.initalizeComponent(this);
 		distance = new BrickletDistanceIR(uid, ipcon);
 
 		distance.addDistanceListener((distance) -> {

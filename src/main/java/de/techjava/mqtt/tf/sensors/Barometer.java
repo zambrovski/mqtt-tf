@@ -23,8 +23,8 @@ public class Barometer {
 	private Logger logger = LoggerFactory.getLogger(Barometer.class);
 	@Autowired
 	private IPConnection ipcon;
-//	@Autowired
-//	private TinkerForgeInitializer initializer;
+	@Autowired
+	private TinkerForgeInitializerAspect initializer;
 	@Autowired
 	private MqttSender sender;
 
@@ -38,7 +38,7 @@ public class Barometer {
 
 	@PostConstruct
 	public void init() {
-//		initializer.initalizeComponent(this);
+		initializer.initalizeComponent(this);
 		barometer = new BrickletBarometer(uid, ipcon);
 		barometer.addAirPressureListener((airPressure) -> {
 			sender.sendMessage("pressure", String.valueOf(airPressure));

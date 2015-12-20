@@ -25,8 +25,8 @@ public class Scale {
 	private IPConnection ipcon;
 	@Autowired
 	private MqttSender sender;
-//	@Autowired
-//	private TinkerForgeInitializer initializer;
+	@Autowired
+	private TinkerForgeInitializerAspect initializer;
 	@TinkerForgeUid
 	private String uid;
 	@Value("#{tinkerforge.bricklet.scale.callbackperiod ?: 1000}")
@@ -36,7 +36,7 @@ public class Scale {
 
 	@PostConstruct
 	public void init() {
-//		initializer.initalizeComponent(this);
+		initializer.initalizeComponent(this);
 		load = new BrickletLoadCell(uid, ipcon);
 
 		load.addWeightListener((weight) -> {
