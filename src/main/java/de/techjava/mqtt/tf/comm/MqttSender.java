@@ -36,5 +36,4 @@ public class MqttSender {
 
 		logger.trace("Message published");
 	}
-
 }

@@ -52,7 +52,7 @@ public class MqttReceiver extends MqttCallbackAdapter {
 	 *            listener to register.
 	 */
 	public void addListener(final String topic, final MqttCallback callback) {
-		logger.info("Adding listener {} to topic '{}'", callback.getClass().getName(), topic);
+		logger.info("Adding listener {} to topic '{}'", callback.getClass().getSimpleName(), topic);
 		final String fullTopic = topicPrefix + topic;
 		Collection<MqttCallback> callbacksForTopic = this.listeners.get(fullTopic);
 		if (callbacksForTopic == null) {
