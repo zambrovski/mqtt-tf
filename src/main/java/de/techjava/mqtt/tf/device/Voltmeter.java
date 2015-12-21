@@ -22,9 +22,9 @@ import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 public class Voltmeter implements DeviceFactory {
 
 	private Logger logger = LoggerFactory.getLogger(Voltmeter.class);
-	@Value("#{tinkerforge.voltmeter.callbackperiod?:100}")
+	@Value("${tinkerforge.voltmeter.callbackperiod?:100}")
 	private long callbackperiod;
-	@Value("#{tinkerforge.voltmeter.topic?:'pressure'}")
+	@Value("${tinkerforge.voltmeter.topic?:'pressure'}")
 	private String topic;
 
 	@Autowired
