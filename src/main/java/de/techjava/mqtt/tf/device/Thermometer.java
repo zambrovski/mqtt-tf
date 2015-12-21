@@ -48,7 +48,7 @@ public class Thermometer implements DeviceFactory {
 			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(distance));
 		});
 		try {
-			sensor.setTemperatureCallbackPeriod(callbackperiod);
+			sensor.setTemperatureCallbackPeriod(realm.getCallback(uid, callbackperiod));
 		} catch (TimeoutException | NotConnectedException e) {
 			logger.error("Error setting callback period", e);
 		}

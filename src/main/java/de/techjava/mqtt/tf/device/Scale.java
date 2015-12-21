@@ -48,7 +48,7 @@ public class Scale implements DeviceFactory {
 			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(distance));
 		});
 		try {
-			sensor.setWeightCallbackPeriod(callbackperiod);
+			sensor.setWeightCallbackPeriod(realm.getCallback(uid, callbackperiod));
 		} catch (TimeoutException | NotConnectedException e) {
 			logger.error("Error setting callback period", e);
 		}

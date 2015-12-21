@@ -19,7 +19,7 @@ public class MqttTinkerForgeRealm {
 	}
 
 	public long getCallback(String uid, long callbackperiod) {
-		final String prop = env.getProperty(uid);
+		final String prop = env.getProperty(uid + ".callback");
 		if (prop != null) {
 			try {
 				int value = Integer.parseInt(prop);

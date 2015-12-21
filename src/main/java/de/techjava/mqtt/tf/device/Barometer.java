@@ -48,7 +48,7 @@ public class Barometer implements DeviceFactory {
 			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(airPressure));
 		});
 		try {
-			barometer.setAirPressureCallbackPeriod(callbackperiod);
+			barometer.setAirPressureCallbackPeriod(realm.getCallback(uid, callbackperiod));
 		} catch (TimeoutException | NotConnectedException e) {
 			logger.error("Error setting callback period", e);
 		}

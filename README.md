@@ -67,7 +67,7 @@ Currently, the following sensor types are supported:
 In addition, the following actuators are implemented:
  - LCD 20x4 Text and Backlight
 
-In general, you can configure every value sensor and set its value read timeout (`callbackperiod`) and the target topic (`topic`).
+In general, you can configure every value sensor and set its value read timeout (`callbackperiod`) and the target topic (`topic`) based on the device type.
 
     #
     # Example ambient light
@@ -75,7 +75,14 @@ In general, you can configure every value sensor and set its value read timeout 
     tinkerforge.ambilight.topic=illuminance
     tinkerforge.ambilight.callbackperiod=10000
 
-This will configure the ambient light to be checked every 10 seconds and deliver the value to `testsetup/cellar/illuminance`.
+This will configure the ambient light to be checked every 10 seconds and deliver the value to `testsetup/cellar/illuminance`. In particular cases, it is important to configure a single device (not the device type). This can be done in a similar way, how the device segment is set.
+     
+    #
+    # Example ambient light
+    # 
+    aDc.callbackperiod=10000
+
+
 
 
 ### Run

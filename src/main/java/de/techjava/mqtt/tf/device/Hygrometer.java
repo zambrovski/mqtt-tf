@@ -48,7 +48,7 @@ public class Hygrometer implements DeviceFactory {
 			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(distance));
 		});
 		try {
-			sensor.setHumidityCallbackPeriod(callbackperiod);
+			sensor.setHumidityCallbackPeriod(realm.getCallback(uid, callbackperiod));
 		} catch (TimeoutException | NotConnectedException e) {
 			logger.error("Error setting callback period", e);
 		}
