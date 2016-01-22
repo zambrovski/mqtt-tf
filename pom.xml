@@ -86,7 +86,7 @@
 						<configuration>
 							<artifacts>
 								<artifact>
-									<file>${project.build.directory}/${project.build.finalName}.original</file>
+									<file>${project.build.directory}/${project.build.finalName}.jar.original</file>
 									<type>jar</type>
 									<classifier>original</classifier>
 								</artifact>
