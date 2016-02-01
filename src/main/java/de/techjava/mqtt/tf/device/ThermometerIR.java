@@ -14,9 +14,9 @@ import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
-import de.techjava.mqtt.tf.comm.naming.MqttTinkerForgeRealm;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
+import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
 public class ThermometerIR implements DeviceFactory {
@@ -38,7 +38,7 @@ public class ThermometerIR implements DeviceFactory {
 	@Autowired
 	private DeviceFactoryRegistry registry;
 	@Autowired
-	private MqttTinkerForgeRealm realm;
+	private EnvironmentHelper realm;
 
 	@PostConstruct
 	public void init() {

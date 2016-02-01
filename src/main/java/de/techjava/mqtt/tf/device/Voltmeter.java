@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.tinkerforge.BrickletAnalogIn;
@@ -14,9 +15,10 @@ import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
-import de.techjava.mqtt.tf.comm.naming.MqttTinkerForgeRealm;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
+import de.techjava.mqtt.tf.core.EnvironmentHelper;
+import de.techjava.mqtt.tf.core.Threshold;
 
 @Component
 public class Voltmeter implements DeviceFactory {
@@ -24,9 +26,11 @@ public class Voltmeter implements DeviceFactory {
 	private Logger logger = LoggerFactory.getLogger(Voltmeter.class);
 	@Value("${tinkerforge.voltmeter.callbackperiod?:100}")
 	private long callbackperiod;
-	@Value("${tinkerforge.voltmeter.topic?:'pressure'}")
+	@Value("${tinkerforge.voltmeter.topic?:'voltage'}")
 	private String topic;
 
+	@Autowired
+	Environment env;
 	@Autowired
 	private IPConnection ipcon;
 	@Autowired
@@ -34,7 +38,7 @@ public class Voltmeter implements DeviceFactory {
 	@Autowired
 	private DeviceFactoryRegistry registry;
 	@Autowired
-	private MqttTinkerForgeRealm realm;
+	private EnvironmentHelper envHelper;
 
 	@PostConstruct
 	public void init() {
@@ -43,12 +47,21 @@ public class Voltmeter implements DeviceFactory {
 
 	@Override
 	public void createDevice(String uid) {
+
 		BrickletAnalogIn sensor = new BrickletAnalogIn(uid, ipcon);
-		sensor.addVoltageListener((distance) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(distance));
+		sensor.addVoltageListener((voltage) -> {
+			sender.sendMessage(envHelper.getTopic(uid) + topic, String.valueOf(voltage));
+		});
+		sensor.addVoltageReachedListener((voltage) -> {
+			sender.sendMessage(envHelper.getTopic(uid) + topic, String.valueOf(voltage));
 		});
 		try {
-			sensor.setVoltageCallbackPeriod(realm.getCallback(uid, callbackperiod));
+			Threshold threshold = envHelper.getThreshold(uid, "tinkerforge.voltmeter.threshold");
+			if (threshold.isValid()) {
+				sensor.setVoltageCallbackThreshold(threshold.getOperation(), threshold.getMin(), threshold.getMax());
+			} else {
+				sensor.setVoltageCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+			}
 
 		} catch (TimeoutException | NotConnectedException e) {
 			logger.error("Error setting callback period", e);
