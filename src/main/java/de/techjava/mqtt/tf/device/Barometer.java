@@ -45,7 +45,7 @@ public class Barometer implements DeviceFactory {
 	public void createDevice(String uid) {
 		BrickletBarometer barometer = new BrickletBarometer(uid, ipcon);
 		barometer.addAirPressureListener((airPressure) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(airPressure));
+			sender.sendMessage(realm.getTopic(uid) + topic, airPressure);
 		});
 		try {
 			barometer.setAirPressureCallbackPeriod(realm.getCallback(uid, callbackperiod));

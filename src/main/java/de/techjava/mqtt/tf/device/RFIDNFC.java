@@ -13,9 +13,9 @@ import com.tinkerforge.BrickletTemperature;
 import com.tinkerforge.IPConnection;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
-import de.techjava.mqtt.tf.comm.naming.MqttTinkerForgeRealm;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
+import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
 public class RFIDNFC implements DeviceFactory {
@@ -32,7 +32,7 @@ public class RFIDNFC implements DeviceFactory {
     @Autowired
     private DeviceFactoryRegistry registry;
     @Autowired
-    private MqttTinkerForgeRealm realm;
+    private EnvironmentHelper realm;
 
     @PostConstruct
     public void init() {
@@ -55,7 +55,7 @@ public class RFIDNFC implements DeviceFactory {
                  */
                 try {
                     if (idle) {
-                        currentTagType = (short)((currentTagType + 1) % 3);
+                        currentTagType = (short) ((currentTagType + 1) % 3);
                         sensor.requestTagID(currentTagType);
                     }
                     if (state == BrickletNFCRFID.STATE_REQUEST_TAG_ID_READY) {

@@ -47,7 +47,7 @@ public class Ambilight implements DeviceFactory {
 	public void createDevice(String uid) {
 		BrickletAmbientLight bricklet = new BrickletAmbientLight(uid, ipcon);
 		bricklet.addIlluminanceListener((illuminance) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(illuminance));
+			sender.sendMessage(realm.getTopic(uid) + topic, illuminance);
 		});
 		try {
 			bricklet.setIlluminanceCallbackPeriod(realm.getCallback(uid, callbackperiod));

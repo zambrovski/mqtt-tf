@@ -44,8 +44,8 @@ public class Scale implements DeviceFactory {
 	@Override
 	public void createDevice(String uid) {
 		BrickletLoadCell sensor = new BrickletLoadCell(uid, ipcon);
-		sensor.addWeightListener((distance) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(distance));
+		sensor.addWeightListener((weight) -> {
+			sender.sendMessage(realm.getTopic(uid) + topic, weight);
 		});
 		try {
 			sensor.setWeightCallbackPeriod(realm.getCallback(uid, callbackperiod));

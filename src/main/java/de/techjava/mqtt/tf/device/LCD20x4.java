@@ -65,10 +65,10 @@ public class LCD20x4 implements DeviceFactory {
 		receiver.addListener(realm.getTopic(uid) + text4Topic, callback);
 		receiver.addListener(realm.getTopic(uid) + backlightTopic, callback);
 		lcd.addButtonPressedListener((button) -> {
-			sender.sendMessage(realm.getTopic(uid) + buttonTopic + "/" + button, Boolean.TRUE.toString());
+			sender.sendMessage(realm.getTopic(uid) + buttonTopic + "/" + button, Boolean.TRUE);
 		});
 		lcd.addButtonReleasedListener((button) -> {
-			sender.sendMessage(realm.getTopic(uid) + buttonTopic + "/" + button, Boolean.FALSE.toString());
+			sender.sendMessage(realm.getTopic(uid) + buttonTopic + "/" + button, Boolean.FALSE);
 		});
 		logger.info("LCD with uid {} initilized.", uid);
 	}

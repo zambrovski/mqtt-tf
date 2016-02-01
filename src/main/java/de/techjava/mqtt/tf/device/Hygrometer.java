@@ -44,8 +44,8 @@ public class Hygrometer implements DeviceFactory {
 	@Override
 	public void createDevice(String uid) {
 		BrickletHumidity sensor = new BrickletHumidity(uid, ipcon);
-		sensor.addHumidityListener((distance) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(distance));
+		sensor.addHumidityListener((humidity) -> {
+			sender.sendMessage(realm.getTopic(uid) + topic, humidity);
 		});
 		try {
 			sensor.setHumidityCallbackPeriod(realm.getCallback(uid, callbackperiod));

@@ -49,10 +49,10 @@ public class ThermometerIR implements DeviceFactory {
 	public void createDevice(String uid) {
 		BrickletTemperatureIR sensor = new BrickletTemperatureIR(uid, ipcon);
 		sensor.addAmbientTemperatureListener((temp) -> {
-			sender.sendMessage(realm.getTopic(uid) + topicAmbient, String.valueOf(temp));
+			sender.sendMessage(realm.getTopic(uid) + topicAmbient, temp);
 		});
 		sensor.addObjectTemperatureListener((temp) -> {
-			sender.sendMessage(realm.getTopic(uid) + topicObject, String.valueOf(temp));
+			sender.sendMessage(realm.getTopic(uid) + topicObject, temp);
 		});
 		try {
 			sensor.setAmbientTemperatureCallbackPeriod(realm.getCallback(uid + ".ambient", callbackperiodAmbient));

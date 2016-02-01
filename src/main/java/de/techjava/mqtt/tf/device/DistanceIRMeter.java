@@ -45,7 +45,7 @@ public class DistanceIRMeter implements DeviceFactory {
 	public void createDevice(String uid) {
 		BrickletDistanceIR sensor = new BrickletDistanceIR(uid, ipcon);
 		sensor.addDistanceListener((distance) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic, String.valueOf(distance));
+			sender.sendMessage(realm.getTopic(uid) + topic, distance);
 		});
 		try {
 			sensor.setDistanceCallbackPeriod(realm.getCallback(uid, callbackperiod));

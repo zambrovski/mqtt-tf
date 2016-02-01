@@ -50,7 +50,7 @@ public class Voltmeter implements DeviceFactory {
 
 		BrickletAnalogIn sensor = new BrickletAnalogIn(uid, ipcon);
 		sensor.addVoltageListener((voltage) -> {
-			sender.sendMessage(envHelper.getTopic(uid) + topic, String.valueOf(voltage));
+			sender.sendMessage(envHelper.getTopic(uid) + topic, voltage);
 		});
 		sensor.addVoltageReachedListener((voltage) -> {
 			sender.sendMessage(envHelper.getTopic(uid) + topic, String.valueOf(voltage));
