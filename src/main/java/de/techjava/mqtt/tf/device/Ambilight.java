@@ -26,7 +26,7 @@ public class Ambilight implements DeviceFactory {
 	@Value("${tinkerforge.ambilight.topic?:illuminance}")
 	private String topic;
 
-	@Value("${tinkerforge.ambilight.callbackperiod?:1000}")
+	@Value("${tinkerforge.ambilight.callbackperiod?:10000}")
 	private long callbackperiod;
 
 	@Autowired

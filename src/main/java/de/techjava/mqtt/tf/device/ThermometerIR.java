@@ -24,11 +24,11 @@ public class ThermometerIR implements DeviceFactory {
 	private Logger logger = LoggerFactory.getLogger(ThermometerIR.class);
 	@Value("${tinkerforge.thermometer.ir.ambient.callbackperiod?: 10000}")
 	private long callbackperiodAmbient;
-	@Value("${tinkerforge.thermometer.ir.ambient.topic?:temperatur}")
+	@Value("${tinkerforge.thermometer.ir.ambient.topic?:temperature}")
 	private String topicAmbient;
 	@Value("${tinkerforge.thermometer.ir.object.callbackperiod?: 10000}")
 	private long callbackperiodObject;
-	@Value("${tinkerforge.thermometer.ir.object.topic?:temperatur}")
+	@Value("${tinkerforge.thermometer.ir.object.topic?:temperature_object}")
 	private String topicObject;
 
 	@Autowired

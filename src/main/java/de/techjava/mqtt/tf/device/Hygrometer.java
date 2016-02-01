@@ -22,7 +22,7 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 public class Hygrometer implements DeviceFactory {
 
 	private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
-	@Value("${tinkerforge.humidity.callbackperiod?: 10000}")
+	@Value("${tinkerforge.humidity.callbackperiod?:10000}")
 	private long callbackperiod;
 	@Value("${tinkerforge.humidity.topic?:humidity}")
 	private String topic;

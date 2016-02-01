@@ -22,7 +22,7 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 public class DistanceUSMeter implements DeviceFactory {
 
 	private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
-	@Value("${tinkerforge.distance.us.callbackperiod?: 500}")
+	@Value("${tinkerforge.distance.us.callbackperiod?:500}")
 	private long callbackperiod;
 	@Value("${tinkerforge.distance.us.topic?:distance}")
 	private String topic;

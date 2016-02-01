@@ -24,7 +24,7 @@ public class Thermometer implements DeviceFactory {
 	private Logger logger = LoggerFactory.getLogger(Thermometer.class);
 	@Value("${tinkerforge.thermometer.callbackperiod?: 10000}")
 	private long callbackperiod;
-	@Value("${tinkerforge.thermometer.topic?:temperatur}")
+	@Value("${tinkerforge.thermometer.topic?:temperature}")
 	private String topic;
 
 	@Autowired
