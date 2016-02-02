@@ -29,6 +29,7 @@ public class MqttSender {
     public void sendMessage(final String topic, final Object content) {
 
         final String message = seralizeMessage(topic, content);
+        LOGGER.debug("Sending message {} to topic {}.", message, topic);
         if (message != null) {
             sendMessage(topic, message);
         }
