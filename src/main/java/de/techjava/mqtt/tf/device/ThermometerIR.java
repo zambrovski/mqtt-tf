@@ -53,6 +53,7 @@ public class ThermometerIR implements DeviceFactory {
 			sender.sendMessage(realm.getTopic(uid) + topicAmbient, (((Short)temp).doubleValue())/10.0);
 		});
 		sensor.addObjectTemperatureListener((temp) -> {
+		    logger.debug("Object Temperature {}", temp);
 			sender.sendMessage(realm.getTopic(uid) + topicObject, (((Short)temp).doubleValue())/10.0);
 		});
 		try {
