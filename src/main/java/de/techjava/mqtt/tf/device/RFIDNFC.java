@@ -73,6 +73,8 @@ public class RFIDNFC implements DeviceFactory {
                         }
                         if (lastTagId == null || !lastTagId.equals(tagIdBuilder.toString())) {
                             lastTagId = tagIdBuilder.toString();
+                            logger.info("new RFID Tag identified {}", tagId);
+
                             newTagIdIdentified(uid);
                         }
 
