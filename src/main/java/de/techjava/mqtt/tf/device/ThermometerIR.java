@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.NumberUtils;
 
 import com.tinkerforge.BrickletTemperatureIR;
 import com.tinkerforge.IPConnection;
@@ -49,10 +50,10 @@ public class ThermometerIR implements DeviceFactory {
 	public void createDevice(String uid) {
 		BrickletTemperatureIR sensor = new BrickletTemperatureIR(uid, ipcon);
 		sensor.addAmbientTemperatureListener((temp) -> {
-			sender.sendMessage(realm.getTopic(uid) + topicAmbient, temp/10.0);
+			sender.sendMessage(realm.getTopic(uid) + topicAmbient, (((Short)temp).doubleValue())/10.0);
 		});
 		sensor.addObjectTemperatureListener((temp) -> {
-			sender.sendMessage(realm.getTopic(uid) + topicObject, temp/10.0);
+			sender.sendMessage(realm.getTopic(uid) + topicObject, (((Short)temp).doubleValue())/10.0);
 		});
 		try {
 			sensor.setAmbientTemperatureCallbackPeriod(realm.getCallback(uid + ".ambient", callbackperiodAmbient));
