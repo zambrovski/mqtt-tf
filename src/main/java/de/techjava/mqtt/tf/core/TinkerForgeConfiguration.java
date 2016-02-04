@@ -1,6 +1,7 @@
 package de.techjava.mqtt.tf.core;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,9 +61,12 @@ public class TinkerForgeConfiguration {
 					deviceIdentifier, enumerationType) -> {
 				switch (enumerationType) {
 				case IPConnection.ENUMERATION_TYPE_AVAILABLE:
-					final DeviceFactory factory = registry.getDeviceFactory(deviceIdentifier);
-					if (factory != null) {
-						factory.createDevice(uid);
+					final List<DeviceFactory> factories = registry.getDeviceFactory(deviceIdentifier);
+					if (factories != null) {
+					    for (DeviceFactory factory : factories) {
+					        factory.createDevice(uid);
+                        }
+						
 					} else {
 						logger.error("No factory found for device type {}", deviceIdentifier);
 					}
