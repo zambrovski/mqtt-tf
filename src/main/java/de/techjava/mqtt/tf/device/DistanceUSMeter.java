@@ -24,8 +24,8 @@ public class DistanceUSMeter implements DeviceFactory {
 	private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
 	@Value("${tinkerforge.distance.us.callbackperiod?:500}")
 	private long callbackperiod;
-	@Value("${tinkerforge.distance.us.topic?:distance}")
-	private String topic;
+	@Value("${tinkerforge.distance.us.topic?:open}")
+	private boolean topic;
 
 	@Autowired
 	private IPConnection ipcon;
@@ -44,8 +44,8 @@ public class DistanceUSMeter implements DeviceFactory {
 	@Override
 	public void createDevice(String uid) {
 		BrickletDistanceUS sensor = new BrickletDistanceUS(uid, ipcon);
-		sensor.addDistanceListener((distance) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic, distance);
+		sensor.addDistanceListener((open) -> {
+			sender.sendMessage(realm.getTopic(uid) + topic, (open > 200 ? true : false));
 		});
 		try {
 			sensor.setDistanceCallbackPeriod(realm.getCallback(uid, callbackperiod));
