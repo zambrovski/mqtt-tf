@@ -52,7 +52,7 @@ public class Thermometer implements DeviceFactory {
 		} catch (TimeoutException | NotConnectedException e) {
 			logger.error("Error setting callback period", e);
 		}
-		logger.info("Thermometer uid {} initialized", uid);
+		logger.info("Thermometer uid {} initialized!", uid);
 	}
 
 }
