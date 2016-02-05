@@ -24,8 +24,8 @@ public class DistanceUSMeter implements DeviceFactory {
 	private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
 	@Value("${tinkerforge.distance.us.callbackperiod?:500}")
 	private long callbackperiod;
-	@Value("${tinkerforge.distance.us.topic?:open}")
-	private boolean topic;
+	@Value("${tinkerforge.distance.us.topic?:distance}")
+	private String topic = "open";
 
 	@Autowired
 	private IPConnection ipcon;
