@@ -28,7 +28,13 @@ public class LedStrip implements DeviceFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(LedStrip.class);
 
-    @Value("${tinkerforge.ambilight.topic?:led}")
+    private static final int NUM_LEDS = 16;
+    private static int rIndex = 0;
+    private static short[] r = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private static short[] g = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    private static short[] b = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    
+    @Value("${tinkerforge.led.topic?:led}")
     private String topic;
 
     @Value("${tinkerforge.ambilight.callbackperiod?:10000}")
@@ -52,16 +58,36 @@ public class LedStrip implements DeviceFactory {
 
     @Override
     public void createDevice(String uid) {
-        final BrickletLEDStrip bricklet = new BrickletLEDStrip(uid, ipcon);
+        final BrickletLEDStrip ls = new BrickletLEDStrip(uid, ipcon);
         MqttCallback callback =  new MqttCallbackAdapter() {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-                short[] r = {1,128,255};
-                short[] g = {1,128,255};
-                short[] b = {1,128,255};
-                
-                bricklet.setRGBValues(0, (short) 3, r, g, b);
+                // Set frame duration to 50ms (20 frames per second)
+                ls.setFrameDuration(50);
+
+                // Use frame rendered callback to move the active LED every frame
+                ls.addFrameRenderedListener(new BrickletLEDStrip.FrameRenderedListener() {
+                    public void frameRendered(int length) {
+                        b[rIndex] = 0;
+                        if(rIndex == NUM_LEDS-1) {
+                            rIndex = 0;
+                        } else {
+                            rIndex++;
+                        }
+                        b[rIndex] = 255;
+
+                        // Set new data for next render cycle
+                        try {
+                            ls.setRGBValues(0, (short)NUM_LEDS, r, g, b);
+                        } catch(Exception e) {
+                            System.out.println(e);
+                        }
+                    }
+                });
+
+                // Set initial rgb values to get started
+                ls.setRGBValues(0, (short)NUM_LEDS, r, g, b);
                 logger.info("Led Strip updated.");
             }
             
