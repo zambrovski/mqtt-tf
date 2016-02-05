@@ -45,7 +45,7 @@ public class Thermometer implements DeviceFactory {
 	public void createDevice(String uid) {
 		BrickletTemperature sensor = new BrickletTemperature(uid, ipcon);
 		sensor.addTemperatureListener((temperature) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic,  (((Short)temperature).doubleValue())/10.0);
+			sender.sendMessage(realm.getTopic(uid) + topic,  (((Short)temperature).doubleValue())/100.0);
 		});
 		try {
 			sensor.setTemperatureCallbackPeriod(realm.getCallback(uid, callbackperiod));
