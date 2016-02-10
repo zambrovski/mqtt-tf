@@ -21,37 +21,46 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class Barometer implements DeviceFactory {
 
-	private Logger logger = LoggerFactory.getLogger(Barometer.class);
-	@Value("${tinkerforge.barometer.topic?:pressure}")
-	private String topic;
-	@Value("${tinkerforge.barometer.callbackperiod?:10000}")
-	private long callbackperiod;
+    private Logger logger = LoggerFactory.getLogger(Barometer.class);
+    @Value("${tinkerforge.barometer.topic?:pressure}")
+    private String topic;
+    @Value("${tinkerforge.barometer.callbackperiod?:10000}")
+    private long callbackperiod;
+    @Value("${tinkerforge.barometer.disabled?:no}")
+    private String disabled;
 
-	@Autowired
-	private IPConnection ipcon;
-	@Autowired
-	private MqttSender sender;
-	@Autowired
-	private DeviceFactoryRegistry registry;
-	@Autowired
-	private EnvironmentHelper realm;
+    @Autowired
+    private IPConnection ipcon;
+    @Autowired
+    private MqttSender sender;
+    @Autowired
+    private DeviceFactoryRegistry registry;
+    @Autowired
+    private EnvironmentHelper envHelper;
 
-	@PostConstruct
-	public void init() {
-		registry.registerDeviceFactory(BrickletBarometer.DEVICE_IDENTIFIER, this);
-	}
+    @PostConstruct
+    public void init() {
+        registry.registerDeviceFactory(BrickletBarometer.DEVICE_IDENTIFIER, this);
+    }
 
-	@Override
-	public void createDevice(String uid) {
-		BrickletBarometer barometer = new BrickletBarometer(uid, ipcon);
-		barometer.addAirPressureListener((airPressure) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic, airPressure);
-		});
-		try {
-			barometer.setAirPressureCallbackPeriod(realm.getCallback(uid, callbackperiod));
-		} catch (TimeoutException | NotConnectedException e) {
-			logger.error("Error setting callback period", e);
-		}
-		logger.info("Barometer with uid {} initilized.", uid);
-	}
+    @Override
+    public void createDevice(String uid) {
+        BrickletBarometer barometer = new BrickletBarometer(uid, ipcon);
+        boolean enable = !envHelper.isDisabled(uid, disabled);
+        if (enable) {
+            barometer.addAirPressureListener((airPressure) -> {
+                sender.sendMessage(envHelper.getTopic(uid) + topic, airPressure);
+            });
+        } else {
+            logger.info("Barometer listener disabled");
+        }
+        try {
+            if (enable) {
+                barometer.setAirPressureCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            }
+        } catch (TimeoutException | NotConnectedException e) {
+            logger.error("Error setting callback period", e);
+        }
+        logger.info("Barometer with uid {} initilized.", uid);
+    }
 }

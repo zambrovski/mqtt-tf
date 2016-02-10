@@ -21,38 +21,48 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class Thermometer implements DeviceFactory {
 
-	private Logger logger = LoggerFactory.getLogger(Thermometer.class);
-	@Value("${tinkerforge.thermometer.callbackperiod?: 10000}")
-	private long callbackperiod;
-	@Value("${tinkerforge.thermometer.topic?:temperature}")
-	private String topic;
+    private Logger logger = LoggerFactory.getLogger(Thermometer.class);
+    @Value("${tinkerforge.thermometer.callbackperiod?: 10000}")
+    private long callbackperiod;
+    @Value("${tinkerforge.thermometer.topic?:temperature}")
+    private String topic;
+    @Value("${tinkerforge.thermometer.disabled?:no}")
+    private String disabled;
 
-	@Autowired
-	private IPConnection ipcon;
-	@Autowired
-	private MqttSender sender;
-	@Autowired
-	private DeviceFactoryRegistry registry;
-	@Autowired
-	private EnvironmentHelper realm;
+    @Autowired
+    private IPConnection ipcon;
+    @Autowired
+    private MqttSender sender;
+    @Autowired
+    private DeviceFactoryRegistry registry;
+    @Autowired
+    private EnvironmentHelper envHelper;
 
-	@PostConstruct
-	public void init() {
-		registry.registerDeviceFactory(BrickletTemperature.DEVICE_IDENTIFIER, this);
-	}
+    @PostConstruct
+    public void init() {
+        registry.registerDeviceFactory(BrickletTemperature.DEVICE_IDENTIFIER, this);
+    }
 
-	@Override
-	public void createDevice(String uid) {
-		BrickletTemperature sensor = new BrickletTemperature(uid, ipcon);
-		sensor.addTemperatureListener((temperature) -> {
-			sender.sendMessage(realm.getTopic(uid) + topic,  (((Short)temperature).doubleValue())/100.0);
-		});
-		try {
-			sensor.setTemperatureCallbackPeriod(realm.getCallback(uid, callbackperiod));
-		} catch (TimeoutException | NotConnectedException e) {
-			logger.error("Error setting callback period", e);
-		}
-		logger.info("Thermometer uid {} initialized!", uid);
-	}
+    @Override
+    public void createDevice(String uid) {
+        BrickletTemperature sensor = new BrickletTemperature(uid, ipcon);
+        boolean enable = !envHelper.isDisabled(uid, disabled);
+
+        if (enable) {
+            sensor.addTemperatureListener((temperature) -> {
+                sender.sendMessage(envHelper.getTopic(uid) + topic, (((Short) temperature).doubleValue()) / 100.0);
+            });
+        } else {
+            logger.info("Voltmeter listener disabled");
+        }
+        try {
+            if (enable) {
+                sensor.setTemperatureCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            }
+        } catch (TimeoutException | NotConnectedException e) {
+            logger.error("Error setting callback period", e);
+        }
+        logger.info("Thermometer uid {} initialized!", uid);
+    }
 
 }
