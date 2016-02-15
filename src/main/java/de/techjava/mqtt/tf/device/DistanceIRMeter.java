@@ -26,8 +26,6 @@ public class DistanceIRMeter implements DeviceFactory {
     private long callbackperiod;
     @Value("${tinkerforge.distance.ir.topic?:distance}")
     private String topic;
-    @Value("${tinkerforge.distance.ir.disabled?:no}")
-    private String disabled;
 
     @Autowired
     private IPConnection ipcon;
@@ -45,20 +43,12 @@ public class DistanceIRMeter implements DeviceFactory {
 
     @Override
     public void createDevice(String uid) {
-        BrickletDistanceIR sensor = new BrickletDistanceIR(uid, ipcon);
-        boolean enable = !envHelper.isDisabled(uid, disabled);
-
-        if (enable) {
-            sensor.addDistanceListener((distance) -> {
-                sender.sendMessage(envHelper.getTopic(uid) + topic, distance);
-            });
-        } else {
-            logger.info("IR distance listener disabled");
-        }
+        final BrickletDistanceIR sensor = new BrickletDistanceIR(uid, ipcon);
+        sensor.addDistanceListener((distance) -> {
+            sender.sendMessage(envHelper.getTopic(uid) + topic, distance);
+        });
         try {
-            if (enable) {
-                sensor.setDistanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
-            }
+            sensor.setDistanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
         } catch (TimeoutException | NotConnectedException e) {
             logger.error("Error setting callback period", e);
         }

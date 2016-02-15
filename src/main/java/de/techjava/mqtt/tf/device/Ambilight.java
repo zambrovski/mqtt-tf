@@ -27,9 +27,6 @@ public class Ambilight implements DeviceFactory {
     private String topic;
     @Value("${tinkerforge.ambilight.callbackperiod?:10000}")
     private long callbackperiod;
-    @Value("${tinkerforge.ambilight.disabled?:no}")
-    private String disabled;
-
     @Autowired
     private IPConnection ipcon;
     @Autowired
@@ -46,21 +43,12 @@ public class Ambilight implements DeviceFactory {
 
     @Override
     public void createDevice(String uid) {
-        BrickletAmbientLight bricklet = new BrickletAmbientLight(uid, ipcon);
-
-        boolean enable = !envHelper.isDisabled(uid, disabled);
-
-        if (enable) {
-            bricklet.addIlluminanceListener((illuminance) -> {
-                sender.sendMessage(envHelper.getTopic(uid) + topic, illuminance);
-            });
-        } else {
-            logger.info("Ambilight listener disabled");
-        }
+        final BrickletAmbientLight bricklet = new BrickletAmbientLight(uid, ipcon);
+        bricklet.addIlluminanceListener((illuminance) -> {
+            sender.sendMessage(envHelper.getTopic(uid) + topic, illuminance);
+        });
         try {
-            if (enable) {
-                bricklet.setIlluminanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
-            }
+            bricklet.setIlluminanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
         } catch (TimeoutException | NotConnectedException e) {
             logger.error("Error setting Illuminance Callback Period", e);
         }

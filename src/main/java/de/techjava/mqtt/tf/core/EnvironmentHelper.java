@@ -67,11 +67,14 @@ public class EnvironmentHelper {
 
     /**
      * Retrieves the status of the measurement type listener for given type and uid.
-     * @param uid uid of device
-     * @param typeProperty type of
+     * 
+     * @param uid
+     *            uid of device
+     * @param typeProperty
+     *            type of
      * @return true if listener should be disabled, false otherwise
      */
-    public boolean isDisabled(String uid, String typeProperty) {
+    public <T extends DeviceFactory> boolean isDisabled(String uid, Class<T> deviceFactory) {
         // <device-uid>.disabled=true
         // <device-uid>.ambient.disabled=true
         final String instanceUidProperty = env.getProperty(uid + ".disabled");
@@ -80,10 +83,53 @@ public class EnvironmentHelper {
         }
         // ${tinkerforge.temperature.disabled}=true
         // ${tinkerforge.temperature.ambient.disabled}=true
-        if (typeProperty != null && Boolean.parseBoolean(typeProperty)) {
+        final String factoryProperty = "tinkerforge." + deviceFactory.getSimpleName() + ".disabled";
+        String propertyValue = env.getProperty(factoryProperty);
+        if (propertyValue != null && Boolean.parseBoolean(propertyValue)) {
             return true;
-        } 
-        
+        }
+
         return false;
     }
+
+    /**
+     * Parses a long property.
+     * 
+     * @param uid
+     *            uid to parse instance property
+     * @param longProperty
+     *            string injected into the device factory containing the long value.
+     * @param suffix
+     *            suffix to add to the uid
+     * @return long property parsed from the instance or from type.
+     */
+    public long getLong(String uid, String longProperty, String suffix) {
+        final String prop = env.getProperty(uid + "." + suffix);
+        if (prop != null) {
+            return Long.valueOf(prop);
+        } else {
+            return Long.valueOf(longProperty);
+        }
+    }
+
+    /**
+     * Parses a string property.
+     * 
+     * @param uid
+     *            uid to parse instance property
+     * @param longProperty
+     *            string injected into the device factory containing the string value.
+     * @param suffix
+     *            suffix to add to the uid
+     * @return string property parsed from the instance or from type.
+     */
+    public String getString(String uid, String stringProperty, String suffix) {
+        final String prop = env.getProperty(uid + "." + suffix);
+        if (prop != null) {
+            return prop;
+        } else {
+            return stringProperty;
+        }
+    }
+
 }

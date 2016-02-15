@@ -30,10 +30,6 @@ public class ThermometerIR implements DeviceFactory {
     private long callbackperiodObject;
     @Value("${tinkerforge.thermometer.ir.object.topic?:temperature_object}")
     private String topicObject;
-    @Value("${tinkerforge.thermometer.ir.object.disabled:no}")
-    private String disabledObject;
-    @Value("${tinkerforge.thermometer.ir.ambient.disabled:no}")
-    private String disabledAmbient;
 
     @Autowired
     private IPConnection ipcon;
@@ -51,36 +47,17 @@ public class ThermometerIR implements DeviceFactory {
 
     @Override
     public void createDevice(String uid) {
-        BrickletTemperatureIR sensor = new BrickletTemperatureIR(uid, ipcon);
-
-        boolean enableAmbient = !envHelper.isDisabled(uid + ".ambient", disabledAmbient);
-        boolean enableObject = !envHelper.isDisabled(uid + ".object", disabledObject);
-        
-        logger.info("Enablement {} {}", enableAmbient, enableObject);
-
-        if (enableAmbient) {
-            sensor.addAmbientTemperatureListener((temp) -> {
-                sender.sendMessage(envHelper.getTopic(uid) + topicAmbient, (((Short) temp).doubleValue()) / 10.0);
-            });
-        } else {
-            logger.info("Ambient temperature IR listener disabled");
-        }
-
-        if (enableObject) {
-            sensor.addObjectTemperatureListener((temp) -> {
-                logger.debug("Object Temperature {}", temp);
-                sender.sendMessage(envHelper.getTopic(uid) + topicObject, (((Short) temp).doubleValue()) / 10.0);
-            });
-        } else {
-            logger.info("Object temperature listner disabled");
-        }
+        final BrickletTemperatureIR sensor = new BrickletTemperatureIR(uid, ipcon);
+        sensor.addAmbientTemperatureListener((temp) -> {
+            sender.sendMessage(envHelper.getTopic(uid) + topicAmbient, (((Short) temp).doubleValue()) / 10.0);
+        });
+        sensor.addObjectTemperatureListener((temp) -> {
+            logger.debug("Object Temperature {}", temp);
+            sender.sendMessage(envHelper.getTopic(uid) + topicObject, (((Short) temp).doubleValue()) / 10.0);
+        });
         try {
-            if (enableAmbient) {
-                sensor.setAmbientTemperatureCallbackPeriod(envHelper.getCallback(uid + ".ambient", callbackperiodAmbient));
-            }
-            if (enableObject) {
-                sensor.setObjectTemperatureCallbackPeriod(envHelper.getCallback(uid + ".object", callbackperiodObject));
-            }
+            sensor.setAmbientTemperatureCallbackPeriod(envHelper.getCallback(uid + ".ambient", callbackperiodAmbient));
+            sensor.setObjectTemperatureCallbackPeriod(envHelper.getCallback(uid + ".object", callbackperiodObject));
         } catch (TimeoutException | NotConnectedException e) {
             logger.error("Error setting callback period", e);
         }

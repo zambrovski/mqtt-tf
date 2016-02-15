@@ -7,6 +7,7 @@
 	<packaging>jar</packaging>
 	<name>TinkerForge MQTT Bridge</name>
 	<description>Spring Boot application providing TinkerForge to MQTT bridge.</description>
+  <version>0.0.3-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -125,5 +126,4 @@
 		</plugins>
 	</build>
 
-	<version>0.0.2-SNAPSHOT</version>
 </project>

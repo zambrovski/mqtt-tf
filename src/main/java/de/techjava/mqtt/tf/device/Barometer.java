@@ -26,8 +26,6 @@ public class Barometer implements DeviceFactory {
     private String topic;
     @Value("${tinkerforge.barometer.callbackperiod?:10000}")
     private long callbackperiod;
-    @Value("${tinkerforge.barometer.disabled?:no}")
-    private String disabled;
 
     @Autowired
     private IPConnection ipcon;
@@ -45,19 +43,12 @@ public class Barometer implements DeviceFactory {
 
     @Override
     public void createDevice(String uid) {
-        BrickletBarometer barometer = new BrickletBarometer(uid, ipcon);
-        boolean enable = !envHelper.isDisabled(uid, disabled);
-        if (enable) {
-            barometer.addAirPressureListener((airPressure) -> {
-                sender.sendMessage(envHelper.getTopic(uid) + topic, airPressure);
-            });
-        } else {
-            logger.info("Barometer listener disabled");
-        }
+        final BrickletBarometer barometer = new BrickletBarometer(uid, ipcon);
+        barometer.addAirPressureListener((airPressure) -> {
+            sender.sendMessage(envHelper.getTopic(uid) + topic, airPressure);
+        });
         try {
-            if (enable) {
-                barometer.setAirPressureCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
-            }
+            barometer.setAirPressureCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
         } catch (TimeoutException | NotConnectedException e) {
             logger.error("Error setting callback period", e);
         }

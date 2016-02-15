@@ -26,8 +26,6 @@ public class DistanceUSMeter implements DeviceFactory {
     private long callbackperiod;
     @Value("${tinkerforge.distance.us.topic?:distance}")
     private String topic;
-    @Value("${tinkerforge.distance.us.disabled?:no}")
-    private String disabled;
 
     @Autowired
     private IPConnection ipcon;
@@ -45,19 +43,12 @@ public class DistanceUSMeter implements DeviceFactory {
 
     @Override
     public void createDevice(String uid) {
-        BrickletDistanceUS sensor = new BrickletDistanceUS(uid, ipcon);
-        boolean enable = !envHelper.isDisabled(uid, disabled);
-        if (enable) {
-            sensor.addDistanceListener((distance) -> {
-                sender.sendMessage(envHelper.getTopic(uid) + topic, distance);
-            });
-        } else {
-            logger.info("Ultra-sound distance listener disabled");
-        }
+        final BrickletDistanceUS sensor = new BrickletDistanceUS(uid, ipcon);
+        sensor.addDistanceListener((distance) -> {
+            sender.sendMessage(envHelper.getTopic(uid) + topic, distance);
+        });
         try {
-            if (enable) {
-                sensor.setDistanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
-            }
+            sensor.setDistanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
         } catch (TimeoutException | NotConnectedException e) {
             logger.error("Error setting callback period", e);
         }

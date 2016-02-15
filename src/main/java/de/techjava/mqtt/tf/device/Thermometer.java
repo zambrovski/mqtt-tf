@@ -26,8 +26,6 @@ public class Thermometer implements DeviceFactory {
     private long callbackperiod;
     @Value("${tinkerforge.thermometer.topic?:temperature}")
     private String topic;
-    @Value("${tinkerforge.thermometer.disabled?:no}")
-    private String disabled;
 
     @Autowired
     private IPConnection ipcon;
@@ -45,20 +43,12 @@ public class Thermometer implements DeviceFactory {
 
     @Override
     public void createDevice(String uid) {
-        BrickletTemperature sensor = new BrickletTemperature(uid, ipcon);
-        boolean enable = !envHelper.isDisabled(uid, disabled);
-
-        if (enable) {
-            sensor.addTemperatureListener((temperature) -> {
-                sender.sendMessage(envHelper.getTopic(uid) + topic, (((Short) temperature).doubleValue()) / 100.0);
-            });
-        } else {
-            logger.info("Voltmeter listener disabled");
-        }
+        final BrickletTemperature sensor = new BrickletTemperature(uid, ipcon);
+        sensor.addTemperatureListener((temperature) -> {
+            sender.sendMessage(envHelper.getTopic(uid) + topic, (((Short) temperature).doubleValue()) / 100.0);
+        });
         try {
-            if (enable) {
-                sensor.setTemperatureCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
-            }
+            sensor.setTemperatureCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
         } catch (TimeoutException | NotConnectedException e) {
             logger.error("Error setting callback period", e);
         }
