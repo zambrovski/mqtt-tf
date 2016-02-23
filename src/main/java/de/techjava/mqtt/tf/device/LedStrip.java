@@ -10,17 +10,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.tinkerforge.BrickletBarometer;
+import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletLEDStrip;
 import com.tinkerforge.IPConnection;
 
 import de.techjava.mqtt.tf.comm.MqttCallbackAdapter;
 import de.techjava.mqtt.tf.comm.MqttReceiver;
+import de.techjava.mqtt.tf.core.DeviceController;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
-public class LedStrip implements DeviceFactory {
+public class LedStrip implements DeviceFactory<BrickletLEDStrip>, DeviceController<BrickletLEDStrip> {
 
     private static final Logger logger = LoggerFactory.getLogger(LedStrip.class);
 
@@ -50,11 +53,17 @@ public class LedStrip implements DeviceFactory {
     @PostConstruct
     public void init() {
         registry.registerDeviceFactory(BrickletLEDStrip.DEVICE_IDENTIFIER, this);
+    	registry.registerDeviceController(BrickletLEDStrip.DEVICE_IDENTIFIER, this);
     }
 
     @Override
-    public void createDevice(final String uid) {
+    public BrickletLEDStrip createDevice(final String uid) {
         final BrickletLEDStrip ls = new BrickletLEDStrip(uid, ipcon);
+        return ls;
+	}
+
+	@Override
+	public void setupDevice(final String uid, final BrickletLEDStrip ls) {
         final MqttCallback callback = new MqttCallbackAdapter() {
 
             @Override

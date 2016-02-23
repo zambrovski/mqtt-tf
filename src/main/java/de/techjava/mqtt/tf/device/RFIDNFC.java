@@ -8,109 +8,121 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.tinkerforge.BrickletBarometer;
+import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletNFCRFID;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
+import de.techjava.mqtt.tf.core.DeviceController;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
-public class RFIDNFC implements DeviceFactory {
+public class RFIDNFC implements DeviceFactory<BrickletNFCRFID>, DeviceController<BrickletNFCRFID> {
 
-    private Logger logger = LoggerFactory.getLogger(RFIDNFC.class);
+	private Logger logger = LoggerFactory.getLogger(RFIDNFC.class);
 
-    @Value("${tinkerforge.rfidnfc.topic?:rfidnfc}")
-    private String topic;
-    /**
-     * @see {@link BrickletNFCRFID#TAG_TYPE_MIFARE_CLASSIC} {@link BrickletNFCRFID#TAG_TYPE_TYPE1} {@link BrickletNFCRFID#TAG_TYPE_TYPE2
-     */
-    @Value("${tinkerforge.rfidnfc.tagtyp?:0}")
-    private Short tagType;
+	@Value("${tinkerforge.rfidnfc.topic?:rfidnfc}")
+	private String topic;
+	/**
+	 * @see {@link BrickletNFCRFID#TAG_TYPE_MIFARE_CLASSIC}
+	 *      {@link BrickletNFCRFID#TAG_TYPE_TYPE1}
+	 *      {@link BrickletNFCRFID#TAG_TYPE_TYPE2
+	 */
+	@Value("${tinkerforge.rfidnfc.tagtyp?:0}")
+	private Short tagType;
 
-    @Value("${tinkerforge.rfidnfc.disabled?:no}")
-    private String disabled;
+	@Value("${tinkerforge.rfidnfc.disabled?:false}")
+	private String disabled;
 
-    @Autowired
-    private IPConnection ipcon;
-    @Autowired
-    private MqttSender sender;
-    @Autowired
-    private DeviceFactoryRegistry registry;
-    @Autowired
-    private EnvironmentHelper envHelper;
+	@Autowired
+	private IPConnection ipcon;
+	@Autowired
+	private MqttSender sender;
+	@Autowired
+	private DeviceFactoryRegistry registry;
+	@Autowired
+	private EnvironmentHelper envHelper;
 
-    private String lastTagId;
+	private String lastTagId;
 
-    @PostConstruct
-    public void init() {
-        registry.registerDeviceFactory(BrickletNFCRFID.DEVICE_IDENTIFIER, this);
-    }
+	@PostConstruct
+	public void init() {
+		registry.registerDeviceFactory(BrickletNFCRFID.DEVICE_IDENTIFIER, this);
+		registry.registerDeviceController(BrickletNFCRFID.DEVICE_IDENTIFIER, this);
+	}
 
-    /**
-     * For the scan loop we remember the tag type we are scanning for.
-     */
-    private short currentTagType = 0;
+	/**
+	 * For the scan loop we remember the tag type we are scanning for.
+	 */
+	private short currentTagType = 0;
 
-    @Override
-    public void createDevice(String uid) {
-        try {
-            final BrickletNFCRFID sensor = new BrickletNFCRFID(uid, ipcon);
-            boolean enable = !envHelper.isDisabled(uid, disabled);
-            if (enable) {
+	@Override
+	public BrickletNFCRFID createDevice(String uid) {
+		final BrickletNFCRFID sensor = new BrickletNFCRFID(uid, ipcon);
+		return sensor;
+	}
 
-                sensor.addStateChangedListener((state, idle) -> {
+	@Override
+	public void setupDevice(final String uid, final BrickletNFCRFID sensor) {
+		try {
 
-                    logger.trace("RFID State changed {} {}", state, idle);
-                    /*
-                     * Scan for Tags and send Messages for every detected ID.
-                     */
-                    try {
-                        if (idle) {
-                            currentTagType = (short) ((currentTagType + 1) % 3);
-                            sensor.requestTagID(currentTagType);
-                        }
-                        if (state == BrickletNFCRFID.STATE_REQUEST_TAG_ID_READY) {
-                            BrickletNFCRFID.TagID tagId = sensor.getTagID();
-                            logger.trace("RFID Tag found {}", tagId);
+			boolean enable = !envHelper.isDisabled(uid, disabled);
+			if (enable) {
 
-                            // Convert to HEX String
-                            final StringBuilder tagIdBuilder = new StringBuilder();
-                            for (int i = 0; i < tagId.tidLength; i++) {
-                                tagIdBuilder.append(Integer.toHexString(tagId.tid[i]));
-                            }
-                            if (lastTagId == null || !lastTagId.equals(tagIdBuilder.toString())) {
-                                lastTagId = tagIdBuilder.toString();
-                                logger.info("new RFID Tag identified {}", tagId);
-                                newTagIdIdentified(uid);
-                            }
+				sensor.addStateChangedListener((state, idle) -> {
 
-                        } else if ((state & (1 << 6)) == (1 << 6)) {
-                            // All errors have bit 6 set
-                            logger.trace("RFIDNFC Error {}.", state);
-                        }
-                    } catch (TimeoutException | NotConnectedException e) {
-                        logger.error("Exception Reading RFIDNFC-Tag.", e);
-                    }
-                });
+					logger.trace("RFID State changed {} {}", state, idle);
+					/*
+					 * Scan for Tags and send Messages for every detected ID.
+					 */
+					try {
+						if (idle) {
+							currentTagType = (short) ((currentTagType + 1) % 3);
+							sensor.requestTagID(currentTagType);
+						}
+						if (state == BrickletNFCRFID.STATE_REQUEST_TAG_ID_READY) {
+							BrickletNFCRFID.TagID tagId = sensor.getTagID();
+							logger.trace("RFID Tag found {}", tagId);
 
-                // Start scan loop
-                sensor.requestTagID(tagType);
-            } else {
-                logger.info("RFIDNFC listener disabled");
-            }
+							// Convert to HEX String
+							final StringBuilder tagIdBuilder = new StringBuilder();
+							for (int i = 0; i < tagId.tidLength; i++) {
+								tagIdBuilder.append(Integer.toHexString(tagId.tid[i]));
+							}
+							if (lastTagId == null || !lastTagId.equals(tagIdBuilder.toString())) {
+								lastTagId = tagIdBuilder.toString();
+								logger.info("new RFID Tag identified {}", tagId);
+								newTagIdIdentified(uid);
+							}
 
-            logger.info("RFIDNFC uid {} initialized", uid);
-        } catch (TimeoutException | NotConnectedException e) {
-            logger.error("Error initializing RFIDNFC.", e);
-        }
-    }
+						} else if ((state & (1 << 6)) == (1 << 6)) {
+							// All errors have bit 6 set
+							logger.trace("RFIDNFC Error {}.", state);
+						}
+					} catch (TimeoutException | NotConnectedException e) {
+						logger.error("Exception Reading RFIDNFC-Tag.", e);
+					}
+				});
 
-    private void newTagIdIdentified(String uid) {
-        sender.sendMessage(envHelper.getTopic(uid) + topic, lastTagId);
-    }
+				// Start scan loop
+				sensor.requestTagID(tagType);
+			} else {
+				logger.info("RFIDNFC listener disabled");
+			}
+
+			logger.info("RFIDNFC uid {} initialized", uid);
+		} catch (TimeoutException | NotConnectedException e) {
+			logger.error("Error initializing RFIDNFC.", e);
+		}
+	}
+
+	private void newTagIdIdentified(String uid) {
+		sender.sendMessage(envHelper.getTopic(uid) + topic, lastTagId);
+	}
 
 }
