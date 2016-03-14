@@ -21,31 +21,32 @@ import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 @Component
 public class MasterBrick implements DeviceFactory<BrickMaster>, DeviceController<BrickMaster> {
 
-	private static final Logger logger = LoggerFactory.getLogger(MasterBrick.class);
-	@Autowired
-	private IPConnection ipcon;
-	@Autowired
-	private DeviceFactoryRegistry registry;
+    private static final Logger logger = LoggerFactory.getLogger(MasterBrick.class);
+    @Autowired
+    private IPConnection ipcon;
+    @Autowired
+    private DeviceFactoryRegistry registry;
 
-	@PostConstruct
-	public void init() {
-		registry.registerDeviceFactory(BrickMaster.DEVICE_IDENTIFIER, this);
-		registry.registerDeviceController(BrickMaster.DEVICE_IDENTIFIER, this);
-	}
+    @PostConstruct
+    public void init() {
+        registry.registerDeviceFactory(BrickMaster.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickMaster.DEVICE_IDENTIFIER, this);
+    }
 
-	@Override
-	public BrickMaster createDevice(String uid) {
-		BrickMaster master = new BrickMaster(uid, ipcon);
-		return master;
-	}
+    @Override
+    public BrickMaster createDevice(String uid) {
+        BrickMaster master = new BrickMaster(uid, ipcon);
+        return master;
+    }
 
-	@Override
-	public void setupDevice(final String uid, final BrickMaster master) {
-		try {
-			master.enableStatusLED();
-			logger.info("Master brick with uid {} initialized.", uid);
-		} catch (TimeoutException | NotConnectedException e) {
-			logger.error("Error accessing master brick", e);
-		}
-	}
+    @Override
+    public void setupDevice(final String uid, final BrickMaster master) {
+        try {
+            master.enableStatusLED();
+            logger.info("Master brick with uid {} initialized.", uid);
+        } catch (
+                 TimeoutException | NotConnectedException e) {
+            logger.error("Error accessing master brick", e);
+        }
+    }
 }

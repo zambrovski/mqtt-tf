@@ -26,68 +26,68 @@ import de.techjava.mqtt.tf.core.Threshold;
 @Component
 public class Voltmeter implements DeviceFactory<BrickletAnalogIn>, DeviceController<BrickletAnalogIn> {
 
-	private Logger logger = LoggerFactory.getLogger(Voltmeter.class);
-	@Value("${tinkerforge.voltmeter.callbackperiod?:100}")
-	private long callbackperiod;
-	@Value("${tinkerforge.voltmeter.topic?:voltage}")
-	private String topic;
-	@Value("${tinkerforge.voltmeter.disabled?:no}")
-	private String disabled;
+    private Logger logger = LoggerFactory.getLogger(Voltmeter.class);
+    @Value("${tinkerforge.voltmeter.callbackperiod?:100}")
+    private long callbackperiod;
+    @Value("${tinkerforge.voltmeter.topic?:voltage}")
+    private String topic;
+    @Value("${tinkerforge.voltmeter.disabled?:no}")
+    private String disabled;
 
-	@Autowired
-	Environment env;
-	@Autowired
-	private IPConnection ipcon;
-	@Autowired
-	private MqttSender sender;
-	@Autowired
-	private DeviceFactoryRegistry registry;
-	@Autowired
-	private EnvironmentHelper envHelper;
+    @Autowired
+    Environment env;
+    @Autowired
+    private IPConnection ipcon;
+    @Autowired
+    private MqttSender sender;
+    @Autowired
+    private DeviceFactoryRegistry registry;
+    @Autowired
+    private EnvironmentHelper envHelper;
 
-	@PostConstruct
-	public void init() {
-		registry.registerDeviceFactory(BrickletAnalogIn.DEVICE_IDENTIFIER, this);
-		registry.registerDeviceController(BrickletAnalogIn.DEVICE_IDENTIFIER, this);
-	}
+    @PostConstruct
+    public void init() {
+        registry.registerDeviceFactory(BrickletAnalogIn.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickletAnalogIn.DEVICE_IDENTIFIER, this);
+    }
 
-	@Override
-	public BrickletAnalogIn createDevice(String uid) {
+    @Override
+    public BrickletAnalogIn createDevice(String uid) {
 
-		BrickletAnalogIn sensor = new BrickletAnalogIn(uid, ipcon);
-		return sensor;
-	}
+        BrickletAnalogIn sensor = new BrickletAnalogIn(uid, ipcon);
+        return sensor;
+    }
 
-	@Override
-	public void setupDevice(final String uid, final BrickletAnalogIn sensor) {
+    @Override
+    public void setupDevice(final String uid, final BrickletAnalogIn sensor) {
 
-		boolean enable = !envHelper.isDisabled(uid, disabled);
+        boolean enable = !envHelper.isDisabled(uid, disabled);
 
-		if (enable) {
-			sensor.addVoltageListener((voltage) -> {
-				sender.sendMessage(envHelper.getTopic(uid) + topic, voltage);
-			});
-			sensor.addVoltageReachedListener((voltage) -> {
-				sender.sendMessage(envHelper.getTopic(uid) + topic, String.valueOf(voltage));
-			});
-		} else {
-			logger.info("Voltmeter listener disabled");
-		}
+        if (enable) {
+            sensor.addVoltageListener((voltage) -> {
+                sender.sendMessage(envHelper.getTopic(uid) + topic, voltage);
+            });
+            sensor.addVoltageReachedListener((voltage) -> {
+                sender.sendMessage(envHelper.getTopic(uid) + topic, String.valueOf(voltage));
+            });
+        } else {
+            logger.info("Voltmeter listener disabled");
+        }
 
-		try {
-			if (enable) {
-				Threshold threshold = envHelper.getThreshold(uid, "tinkerforge.voltmeter.threshold");
-				if (threshold.isValid()) {
-					sensor.setVoltageCallbackThreshold(threshold.getOperation(), threshold.getMin(),
-							threshold.getMax());
-				} else {
-					sensor.setVoltageCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
-				}
-			}
+        try {
+            if (enable) {
+                Threshold threshold = envHelper.getThreshold(uid, "tinkerforge.voltmeter.threshold");
+                if (threshold.isValid()) {
+                    sensor.setVoltageCallbackThreshold(threshold.getOperation(), threshold.getMin(), threshold.getMax());
+                } else {
+                    sensor.setVoltageCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+                }
+            }
 
-		} catch (TimeoutException | NotConnectedException e) {
-			logger.error("Error setting callback period", e);
-		}
-		logger.info("Voltmeter with uid {} initialized", uid);
-	}
+        } catch (
+                 TimeoutException | NotConnectedException e) {
+            logger.error("Error setting callback period", e);
+        }
+        logger.info("Voltmeter with uid {} initialized", uid);
+    }
 }

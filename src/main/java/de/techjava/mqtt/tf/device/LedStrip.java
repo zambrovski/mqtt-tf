@@ -40,7 +40,6 @@ public class LedStrip implements DeviceFactory<BrickletLEDStrip>, DeviceControll
     @Value("${tinkerforge.led.frameduration?:50}")
     private Integer frameduration;
 
-    
     @Autowired
     private IPConnection ipcon;
     @Autowired
@@ -53,17 +52,17 @@ public class LedStrip implements DeviceFactory<BrickletLEDStrip>, DeviceControll
     @PostConstruct
     public void init() {
         registry.registerDeviceFactory(BrickletLEDStrip.DEVICE_IDENTIFIER, this);
-    	registry.registerDeviceController(BrickletLEDStrip.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickletLEDStrip.DEVICE_IDENTIFIER, this);
     }
 
     @Override
     public BrickletLEDStrip createDevice(final String uid) {
         final BrickletLEDStrip ls = new BrickletLEDStrip(uid, ipcon);
         return ls;
-	}
+    }
 
-	@Override
-	public void setupDevice(final String uid, final BrickletLEDStrip ls) {
+    @Override
+    public void setupDevice(final String uid, final BrickletLEDStrip ls) {
         final MqttCallback callback = new MqttCallbackAdapter() {
 
             @Override
@@ -72,6 +71,7 @@ public class LedStrip implements DeviceFactory<BrickletLEDStrip>, DeviceControll
 
                 // Use frame rendered callback to move the active LED every frame
                 ls.addFrameRenderedListener(new BrickletLEDStrip.FrameRenderedListener() {
+
                     public void frameRendered(int length) {
                         b[rIndex] = 0;
                         if (rIndex == NUM_LEDS - 1) {
@@ -83,7 +83,7 @@ public class LedStrip implements DeviceFactory<BrickletLEDStrip>, DeviceControll
 
                         // Set new data for next render cycle
                         try {
-                            ls.setRGBValues(0, (short) NUM_LEDS, r, g, b);
+                            ls.setRGBValues(0, (short)NUM_LEDS, r, g, b);
                         } catch (Exception e) {
                             logger.error("Error setting LED", e);
                         }
@@ -91,7 +91,7 @@ public class LedStrip implements DeviceFactory<BrickletLEDStrip>, DeviceControll
                 });
 
                 // Set initial rgb values to get started
-                ls.setRGBValues(0, (short) NUM_LEDS, r, g, b);
+                ls.setRGBValues(0, (short)NUM_LEDS, r, g, b);
                 logger.info("Led Strip updated.");
             }
 
