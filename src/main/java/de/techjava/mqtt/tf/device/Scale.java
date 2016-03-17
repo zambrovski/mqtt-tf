@@ -8,18 +8,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.tinkerforge.BrickletBarometer;
+import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletLoadCell;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
+import de.techjava.mqtt.tf.core.DeviceController;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
-public class Scale implements DeviceFactory {
+public class Scale implements DeviceFactory<BrickletLoadCell>, DeviceController<BrickletLoadCell> {
 
     private static final Logger logger = LoggerFactory.getLogger(Scale.class);
     @Value("${tinkerforge.scale.callbackperiod?: 5000}")
@@ -41,11 +44,17 @@ public class Scale implements DeviceFactory {
     @PostConstruct
     public void init() {
         registry.registerDeviceFactory(BrickletLoadCell.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickletLoadCell.DEVICE_IDENTIFIER, this);
     }
 
     @Override
-    public void createDevice(String uid) {
+    public BrickletLoadCell createDevice(String uid) {
         BrickletLoadCell sensor = new BrickletLoadCell(uid, ipcon);
+        return sensor;
+    }
+
+    @Override
+    public void setupDevice(final String uid, final BrickletLoadCell sensor) {
         boolean enable = !envHelper.isDisabled(uid, disabled);
         if (enable) {
             sensor.addWeightListener((weight) -> {
@@ -58,7 +67,8 @@ public class Scale implements DeviceFactory {
             if (enable) {
                 sensor.setWeightCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
             }
-        } catch (TimeoutException | NotConnectedException e) {
+        } catch (
+                 TimeoutException | NotConnectedException e) {
             logger.error("Error setting callback period", e);
         }
         logger.info("Scale with uid {} initialized", uid);

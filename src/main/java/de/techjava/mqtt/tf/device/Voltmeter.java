@@ -10,18 +10,21 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.tinkerforge.BrickletAnalogIn;
+import com.tinkerforge.BrickletBarometer;
+import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
+import de.techjava.mqtt.tf.core.DeviceController;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 import de.techjava.mqtt.tf.core.EnvironmentHelper;
 import de.techjava.mqtt.tf.core.Threshold;
 
 @Component
-public class Voltmeter implements DeviceFactory {
+public class Voltmeter implements DeviceFactory<BrickletAnalogIn>, DeviceController<BrickletAnalogIn> {
 
     private Logger logger = LoggerFactory.getLogger(Voltmeter.class);
     @Value("${tinkerforge.voltmeter.callbackperiod?:100}")
@@ -45,12 +48,18 @@ public class Voltmeter implements DeviceFactory {
     @PostConstruct
     public void init() {
         registry.registerDeviceFactory(BrickletAnalogIn.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickletAnalogIn.DEVICE_IDENTIFIER, this);
     }
 
     @Override
-    public void createDevice(String uid) {
+    public BrickletAnalogIn createDevice(String uid) {
 
         BrickletAnalogIn sensor = new BrickletAnalogIn(uid, ipcon);
+        return sensor;
+    }
+
+    @Override
+    public void setupDevice(final String uid, final BrickletAnalogIn sensor) {
 
         boolean enable = !envHelper.isDisabled(uid, disabled);
 
@@ -75,7 +84,8 @@ public class Voltmeter implements DeviceFactory {
                 }
             }
 
-        } catch (TimeoutException | NotConnectedException e) {
+        } catch (
+                 TimeoutException | NotConnectedException e) {
             logger.error("Error setting callback period", e);
         }
         logger.info("Voltmeter with uid {} initialized", uid);

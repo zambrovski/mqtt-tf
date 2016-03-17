@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 import com.tinkerforge.AlreadyConnectedException;
+import com.tinkerforge.Device;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.IPConnectionBase;
 
@@ -38,6 +39,7 @@ public class TinkerForgeConfiguration {
 
 	private IPConnection ipConnection;
 
+	@SuppressWarnings("unchecked")
 	@Bean(destroyMethod = "disconnect")
 	@DependsOn("registry")
 	public IPConnection getIPConnection(final DeviceFactoryRegistry registry) {
@@ -61,12 +63,24 @@ public class TinkerForgeConfiguration {
 					deviceIdentifier, enumerationType) -> {
 				switch (enumerationType) {
 				case IPConnection.ENUMERATION_TYPE_AVAILABLE:
-					final List<DeviceFactory> factories = registry.getDeviceFactory(deviceIdentifier);
-					if (factories != null) {
-					    for (DeviceFactory factory : factories) {
-					        factory.createDevice(uid);
-                        }
-						
+
+					DeviceFactory factory = registry.getDeviceFactory(deviceIdentifier);
+					if (factory != null) {
+						final Device device = factory.createDevice(uid);
+						registry.createdDevice(uid, device);
+
+						// Configure the device
+						@SuppressWarnings("rawtypes")
+						final List<DeviceController> controllers = registry.getDeviceControllers(deviceIdentifier);
+						if (controllers != null) {
+							for (@SuppressWarnings("rawtypes")
+							DeviceController deviceController : controllers) {
+								logger.info("Added Device Controller for uid {}",uid);
+								deviceController.setupDevice(uid, device);
+							}
+						} else {
+							logger.info("No controllers (listener configurations) found for device type {}", deviceIdentifier);
+						}
 					} else {
 						logger.error("No factory found for device type {}", deviceIdentifier);
 					}
@@ -81,10 +95,12 @@ public class TinkerForgeConfiguration {
 
 			ipConnection.setAutoReconnect(true);
 		}
+
 		// establish connection.
 		connect();
 
 		return ipConnection;
+
 	}
 
 	/**

@@ -8,18 +8,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.tinkerforge.BrickletBarometer;
 import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
+import de.techjava.mqtt.tf.core.DeviceController;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
-public class DistanceIRMeter implements DeviceFactory {
+public class DistanceIRMeter implements DeviceFactory<BrickletDistanceIR>, DeviceController<BrickletDistanceIR> {
 
     private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
     @Value("${tinkerforge.distance.ir.callbackperiod?:500}")
@@ -41,11 +43,18 @@ public class DistanceIRMeter implements DeviceFactory {
     @PostConstruct
     public void init() {
         registry.registerDeviceFactory(BrickletDistanceIR.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickletDistanceIR.DEVICE_IDENTIFIER, this);
     }
 
     @Override
-    public void createDevice(String uid) {
-        BrickletDistanceIR sensor = new BrickletDistanceIR(uid, ipcon);
+    public BrickletDistanceIR createDevice(String uid) {
+        BrickletDistanceIR bricklet = new BrickletDistanceIR(uid, ipcon);
+        return bricklet;
+    }
+
+    @Override
+    public void setupDevice(final String uid, final BrickletDistanceIR sensor) {
+
         boolean enable = !envHelper.isDisabled(uid, disabled);
 
         if (enable) {
@@ -59,7 +68,8 @@ public class DistanceIRMeter implements DeviceFactory {
             if (enable) {
                 sensor.setDistanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
             }
-        } catch (TimeoutException | NotConnectedException e) {
+        } catch (
+                 TimeoutException | NotConnectedException e) {
             logger.error("Error setting callback period", e);
         }
         logger.info("IR distance with uid {} initialized", uid);

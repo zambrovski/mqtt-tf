@@ -8,30 +8,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.tinkerforge.BrickletBarometer;
+import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletNFCRFID;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
+import de.techjava.mqtt.tf.core.DeviceController;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
-public class RFIDNFC implements DeviceFactory {
+public class RFIDNFC implements DeviceFactory<BrickletNFCRFID>, DeviceController<BrickletNFCRFID> {
 
     private Logger logger = LoggerFactory.getLogger(RFIDNFC.class);
 
     @Value("${tinkerforge.rfidnfc.topic?:rfidnfc}")
     private String topic;
     /**
-     * @see {@link BrickletNFCRFID#TAG_TYPE_MIFARE_CLASSIC} {@link BrickletNFCRFID#TAG_TYPE_TYPE1} {@link BrickletNFCRFID#TAG_TYPE_TYPE2
+     * @see {@link BrickletNFCRFID#TAG_TYPE_MIFARE_CLASSIC}
+     * {@link BrickletNFCRFID#TAG_TYPE_TYPE1}
+     * {@link BrickletNFCRFID#TAG_TYPE_TYPE2
      */
     @Value("${tinkerforge.rfidnfc.tagtyp?:0}")
     private Short tagType;
 
-    @Value("${tinkerforge.rfidnfc.disabled?:no}")
+    @Value("${tinkerforge.rfidnfc.disabled?:false}")
     private String disabled;
 
     @Autowired
@@ -48,6 +53,7 @@ public class RFIDNFC implements DeviceFactory {
     @PostConstruct
     public void init() {
         registry.registerDeviceFactory(BrickletNFCRFID.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickletNFCRFID.DEVICE_IDENTIFIER, this);
     }
 
     /**
@@ -56,9 +62,15 @@ public class RFIDNFC implements DeviceFactory {
     private short currentTagType = 0;
 
     @Override
-    public void createDevice(String uid) {
+    public BrickletNFCRFID createDevice(String uid) {
+        final BrickletNFCRFID sensor = new BrickletNFCRFID(uid, ipcon);
+        return sensor;
+    }
+
+    @Override
+    public void setupDevice(final String uid, final BrickletNFCRFID sensor) {
         try {
-            final BrickletNFCRFID sensor = new BrickletNFCRFID(uid, ipcon);
+
             boolean enable = !envHelper.isDisabled(uid, disabled);
             if (enable) {
 
@@ -70,7 +82,7 @@ public class RFIDNFC implements DeviceFactory {
                      */
                     try {
                         if (idle) {
-                            currentTagType = (short) ((currentTagType + 1) % 3);
+                            currentTagType = (short)((currentTagType + 1) % 3);
                             sensor.requestTagID(currentTagType);
                         }
                         if (state == BrickletNFCRFID.STATE_REQUEST_TAG_ID_READY) {
@@ -92,7 +104,8 @@ public class RFIDNFC implements DeviceFactory {
                             // All errors have bit 6 set
                             logger.trace("RFIDNFC Error {}.", state);
                         }
-                    } catch (TimeoutException | NotConnectedException e) {
+                    } catch (
+                             TimeoutException | NotConnectedException e) {
                         logger.error("Exception Reading RFIDNFC-Tag.", e);
                     }
                 });
@@ -104,7 +117,8 @@ public class RFIDNFC implements DeviceFactory {
             }
 
             logger.info("RFIDNFC uid {} initialized", uid);
-        } catch (TimeoutException | NotConnectedException e) {
+        } catch (
+                 TimeoutException | NotConnectedException e) {
             logger.error("Error initializing RFIDNFC.", e);
         }
     }

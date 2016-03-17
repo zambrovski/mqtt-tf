@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.tinkerforge.BrickletBarometer;
+import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletLCD20x4;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
@@ -18,12 +20,13 @@ import com.tinkerforge.TimeoutException;
 import de.techjava.mqtt.tf.comm.MqttCallbackAdapter;
 import de.techjava.mqtt.tf.comm.MqttReceiver;
 import de.techjava.mqtt.tf.comm.MqttSender;
+import de.techjava.mqtt.tf.core.DeviceController;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
-public class LCD20x4 implements DeviceFactory {
+public class LCD20x4 implements DeviceFactory<BrickletLCD20x4>, DeviceController<BrickletLCD20x4> {
 
     private static final String EMPTY_LINE = "                    ";
     private static final Logger logger = LoggerFactory.getLogger(LCD20x4.class);
@@ -54,11 +57,17 @@ public class LCD20x4 implements DeviceFactory {
     @PostConstruct
     public void init() {
         registry.registerDeviceFactory(BrickletLCD20x4.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickletLCD20x4.DEVICE_IDENTIFIER, this);
     }
 
     @Override
-    public void createDevice(final String uid) {
-        BrickletLCD20x4 lcd = new BrickletLCD20x4(uid, ipcon);
+    public BrickletLCD20x4 createDevice(final String uid) {
+        BrickletLCD20x4 bricklet = new BrickletLCD20x4(uid, ipcon);
+        return bricklet;
+    }
+
+    @Override
+    public void setupDevice(final String uid, final BrickletLCD20x4 lcd) {
         MqttCallback callback = createCallback(lcd, backlightTopic, text1Topic, text2Topic, text3Topic, text4Topic);
         receiver.addListener(realm.getTopic(uid) + text1Topic, callback);
         receiver.addListener(realm.getTopic(uid) + text2Topic, callback);
