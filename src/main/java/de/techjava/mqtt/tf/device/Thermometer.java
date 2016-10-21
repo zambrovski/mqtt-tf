@@ -23,9 +23,9 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 public class Thermometer implements DeviceFactory<BrickletTemperature>, DeviceController<BrickletTemperature> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Thermometer.class);
-    @Value("${tinkerforge.thermometer.callbackperiod?: 10000}")
+    @Value("${tinkerforge.thermometer.callbackperiod:10000}")
     private long callbackperiod;
-    @Value("${tinkerforge.thermometer.topic?:temperature}")
+    @Value("${tinkerforge.thermometer.topic:temperature}")
     private String topic;
 
     @Autowired
@@ -44,9 +44,8 @@ public class Thermometer implements DeviceFactory<BrickletTemperature>, DeviceCo
     }
 
     @Override
-    public BrickletTemperature createDevice(String uid) {
-        BrickletTemperature sensor = new BrickletTemperature(uid, ipcon);
-        return sensor;
+    public BrickletTemperature createDevice(final String uid) {
+        return new BrickletTemperature(uid, ipcon);
     }
 
     @Override

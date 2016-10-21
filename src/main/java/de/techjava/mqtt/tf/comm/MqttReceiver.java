@@ -52,8 +52,8 @@ public class MqttReceiver extends MqttCallbackAdapter {
 	 *            listener to register.
 	 */
 	public void addListener(final String topic, final MqttCallback callback) {
-		logger.info("Adding listener {} to topic '{}'", callback.getClass().getSimpleName(), topic);
-		final String fullTopic = topicPrefix + topic;
+	    final String fullTopic = topicPrefix + topic;
+		logger.info("Adding listener {} to topic '{}'", callback.getClass().getSimpleName(), fullTopic);
 		Collection<MqttCallback> callbacksForTopic = this.listeners.get(fullTopic);
 		if (callbacksForTopic == null) {
 			callbacksForTopic = new ArrayList<MqttCallback>();
@@ -62,7 +62,7 @@ public class MqttReceiver extends MqttCallbackAdapter {
 				this.client.subscribe(fullTopic);
 				logger.info("Subscribed to topic '{}'", fullTopic);
 			} catch (MqttException e) {
-				logger.error("Error registering listener", e);
+				logger.error("Error registering listener.", e);
 			}
 		}
 		callbacksForTopic.add(callback);
@@ -77,7 +77,7 @@ public class MqttReceiver extends MqttCallbackAdapter {
 				try {
 					mqttCallback.messageArrived(topic, message);
 				} catch (Exception e) {
-					logger.warn("Exception in message processing", e);
+					logger.warn("Exception in message processing.", e);
 				}
 			}
 		}

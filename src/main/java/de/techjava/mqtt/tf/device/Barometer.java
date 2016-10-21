@@ -54,7 +54,7 @@ public class Barometer implements DeviceFactory<BrickletBarometer>, DeviceContro
         boolean enable = !envHelper.isDisabled(uid, Barometer.class);
         if (enable) {
             barometer.addAirPressureListener((airPressure) -> {
-                sender.sendMessage(envHelper.getTopic(uid) + topic, airPressure);
+                sender.sendMessage(envHelper.getTopic(uid) + topic, Double.valueOf(airPressure / 1000.0d));
             });
             try {
                 barometer.setAirPressureCallbackPeriod(envHelper.getCallback(uid, callbackperiod));

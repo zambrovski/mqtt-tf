@@ -54,7 +54,7 @@ public class Hygrometer implements DeviceFactory<BrickletHumidity>, DeviceContro
         boolean enable = !envHelper.isDisabled(uid, Hygrometer.class);
         if (enable) {
             sensor.addHumidityListener((humidity) -> {
-                sender.sendMessage(envHelper.getTopic(uid) + topic, humidity);
+                sender.sendMessage(envHelper.getTopic(uid) + topic, Double.valueOf(humidity / 10.0d));
             });
             try {
                 sensor.setHumidityCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
