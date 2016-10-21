@@ -1,4 +1,6 @@
 # MQTT Tinkerforge Bridge
+[![Build Status](https://secure.travis-ci.org/zambrovski/mqtt-tinkerforge-bridge.png)](https://travis-ci.org/zambrovski/mqtt-tinkerforge-bridge)
+
 
 This project allows to bind TinkerForge sensors and actuators using MQTT to a central broker. 
 The application is built using Spring Boot and is currently in a playground phase.
