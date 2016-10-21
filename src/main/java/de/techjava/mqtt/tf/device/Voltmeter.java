@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.tinkerforge.BrickletAnalogIn;
@@ -24,14 +23,13 @@ import de.techjava.mqtt.tf.core.Threshold;
 @Component
 public class Voltmeter implements DeviceFactory<BrickletAnalogIn>, DeviceController<BrickletAnalogIn> {
 
-    private Logger logger = LoggerFactory.getLogger(Voltmeter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Voltmeter.class);
+
     @Value("${tinkerforge.voltmeter.callbackperiod:100}")
     private long callbackperiod;
     @Value("${tinkerforge.voltmeter.topic:voltage}")
     private String topic;
 
-    @Autowired
-    Environment env;
     @Autowired
     private IPConnection ipcon;
     @Autowired
@@ -49,9 +47,7 @@ public class Voltmeter implements DeviceFactory<BrickletAnalogIn>, DeviceControl
 
     @Override
     public BrickletAnalogIn createDevice(String uid) {
-
-        BrickletAnalogIn sensor = new BrickletAnalogIn(uid, ipcon);
-        return sensor;
+        return new BrickletAnalogIn(uid, ipcon);
     }
 
     @Override
@@ -66,21 +62,20 @@ public class Voltmeter implements DeviceFactory<BrickletAnalogIn>, DeviceControl
             sensor.addVoltageReachedListener((voltage) -> {
                 sender.sendMessage(envHelper.getTopic(uid) + topic, String.valueOf(voltage));
             });
-        } else {
-            logger.info("Voltmeter listener disabled");
-        }
+            try {
+                final Threshold threshold = envHelper.getThreshold(uid, "tinkerforge.voltmeter.threshold");
+                if (threshold.isValid()) {
+                    sensor.setVoltageCallbackThreshold(threshold.getOperation(), threshold.getMin(), threshold.getMax());
+                } else {
+                    sensor.setVoltageCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+                }
 
-        try {
-            Threshold threshold = envHelper.getThreshold(uid, "tinkerforge.voltmeter.threshold");
-            if (threshold.isValid()) {
-                sensor.setVoltageCallbackThreshold(threshold.getOperation(), threshold.getMin(), threshold.getMax());
-            } else {
-                sensor.setVoltageCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            } catch (TimeoutException | NotConnectedException e) {
+                LOGGER.error("Error setting callback period", e);
             }
-
-        } catch (TimeoutException | NotConnectedException e) {
-            logger.error("Error setting callback period", e);
+        } else {
+            LOGGER.info("Voltmeter listener disabled");
         }
-        logger.info("Voltmeter with uid {} initialized.", uid);
+        LOGGER.info("Voltmeter with uid {} initialized.", uid);
     }
 }

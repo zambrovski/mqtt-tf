@@ -29,7 +29,7 @@ import de.techjava.mqtt.tf.device.MasterBrick;
 @ComponentScan(basePackageClasses = { Enumerator.class, MasterBrick.class })
 public class TinkerForgeConfiguration {
 
-    private static final Logger logger = LoggerFactory.getLogger(TinkerForgeConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TinkerForgeConfiguration.class);
 
     @Value("${tinkerforge.host}")
     private String host;
@@ -38,6 +38,13 @@ public class TinkerForgeConfiguration {
 
     private IPConnection ipConnection;
 
+    /**
+     * Retrieves the IP Connection to the TF Master Brick.
+     * 
+     * @param registry
+     *            registry to register devices.
+     * @return configured connection.
+     */
     @SuppressWarnings("unchecked")
     @Bean(destroyMethod = "disconnect")
     @DependsOn("registry")
@@ -48,13 +55,13 @@ public class TinkerForgeConfiguration {
             ipConnection.addDisconnectedListener((disconnectReason) -> {
                 switch (disconnectReason) {
                 case IPConnectionBase.DISCONNECT_REASON_ERROR:
-                    logger.info("Closing TinkerForge connection because of error.");
+                    LOGGER.info("Closing TinkerForge connection because of error.");
                     break;
                 case IPConnectionBase.DISCONNECT_REASON_REQUEST:
-                    logger.info("Disconnecting TinkerForge connection.");
+                    LOGGER.info("Disconnecting TinkerForge connection.");
                     break;
                 case IPConnectionBase.DISCONNECT_REASON_SHUTDOWN:
-                    logger.info("Shutting down TinkerForge connection.");
+                    LOGGER.info("Shutting down TinkerForge connection.");
                     break;
                 }
             });
@@ -68,23 +75,22 @@ public class TinkerForgeConfiguration {
                         registry.createdDevice(uid, device);
 
                         // Configure the device
-                        @SuppressWarnings("rawtypes")
-                        final List<DeviceController> controllers = registry.getDeviceControllers(deviceIdentifier);
+                        final List<DeviceController<?>> controllers = registry.getDeviceControllers(deviceIdentifier);
                         if (controllers != null) {
                             for (@SuppressWarnings("rawtypes")
-                            DeviceController deviceController : controllers) {
-                                logger.info("Added Device Controller for uid {}", uid);
+                            final DeviceController deviceController : controllers) {
+                                LOGGER.info("Added Device Controller for uid {}", uid);
                                 deviceController.setupDevice(uid, device);
                             }
                         } else {
-                            logger.info("No controllers (listener configurations) found for device type {}", deviceIdentifier);
+                            LOGGER.info("No controllers (listener configurations) found for device type {}", deviceIdentifier);
                         }
                     } else {
-                        logger.error("No factory found for device type {}", deviceIdentifier);
+                        LOGGER.error("No factory found for device type {}", deviceIdentifier);
                     }
                     break;
                 case IPConnection.ENUMERATION_TYPE_CONNECTED:
-                    logger.info("Connected new Brick with uid {}", uid);
+                    LOGGER.info("Connected new Brick with uid {}", uid);
                     break;
                 case IPConnection.ENUMERATION_TYPE_DISCONNECTED:
                     break;
@@ -104,7 +110,7 @@ public class TinkerForgeConfiguration {
     /**
      * Creates the device factory registry.
      * 
-     * @return
+     * @return device factory registry.
      */
     @Bean(name = "registry")
     public DeviceFactoryRegistry getRegistry() {
@@ -116,11 +122,11 @@ public class TinkerForgeConfiguration {
      */
     private void connect() {
         try {
-            logger.info("Connecting to TinkerForge: {}:{}...", host, port);
+            LOGGER.info("Connecting to TinkerForge: {}:{}...", host, port);
             ipConnection.connect(host, port);
-            logger.info("Connection established.");
+            LOGGER.info("Connection established.");
         } catch (AlreadyConnectedException | IOException e) {
-            logger.error("Error establishing connection", e);
+            LOGGER.error("Error establishing connection", e);
             System.exit(1);
         }
     }

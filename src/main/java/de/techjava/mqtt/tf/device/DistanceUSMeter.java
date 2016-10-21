@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.tinkerforge.BrickletBarometer;
-import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletDistanceUS;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
@@ -24,7 +22,8 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class DistanceUSMeter implements DeviceFactory<BrickletDistanceUS>, DeviceController<BrickletDistanceUS> {
 
-    private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
+    private final static Logger LOGGEr = LoggerFactory.getLogger(DistanceIRMeter.class);
+    
     @Value("${tinkerforge.distance.us.callbackperiod?:500}")
     private long callbackperiod;
     @Value("${tinkerforge.distance.us.topic?:distance}")
@@ -46,9 +45,8 @@ public class DistanceUSMeter implements DeviceFactory<BrickletDistanceUS>, Devic
     }
 
     @Override
-    public BrickletDistanceUS createDevice(String uid) {
-        BrickletDistanceUS bricklet = new BrickletDistanceUS(uid, ipcon);
-        return bricklet;
+    public BrickletDistanceUS createDevice(final String uid) {
+        return new BrickletDistanceUS(uid, ipcon);
     }
 
     @Override
@@ -58,16 +56,14 @@ public class DistanceUSMeter implements DeviceFactory<BrickletDistanceUS>, Devic
             sensor.addDistanceListener((distance) -> {
                 sender.sendMessage(envHelper.getTopic(uid) + topic, distance);
             });
-        } else {
-            logger.info("Ultra-sound distance listener disabled");
-        }
-        try {
-            if (enable) {
+            try {
                 sensor.setDistanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            } catch (TimeoutException | NotConnectedException e) {
+                LOGGEr.error("Error setting callback period", e);
             }
-        } catch (TimeoutException | NotConnectedException e) {
-            logger.error("Error setting callback period", e);
+        } else {
+            LOGGEr.info("{} listener disabled.", getClass().getSimpleName());
         }
-        logger.info("Ultra-sound distance with uid {} initialized", uid);
+        LOGGEr.info("{} with uid {} initilized.", getClass().getSimpleName(), uid);
     }
 }

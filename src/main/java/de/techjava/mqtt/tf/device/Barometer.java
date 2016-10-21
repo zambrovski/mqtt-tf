@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.tinkerforge.BrickletAmbientLight;
 import com.tinkerforge.BrickletBarometer;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
@@ -23,7 +22,8 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class Barometer implements DeviceFactory<BrickletBarometer>, DeviceController<BrickletBarometer> {
 
-    private Logger logger = LoggerFactory.getLogger(Barometer.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(Barometer.class);
+    
     @Value("${tinkerforge.barometer.topic?:pressure}")
     private String topic;
     @Value("${tinkerforge.barometer.callbackperiod?:10000}")
@@ -45,9 +45,8 @@ public class Barometer implements DeviceFactory<BrickletBarometer>, DeviceContro
     }
 
     @Override
-    public BrickletBarometer createDevice(String uid) {
-        BrickletBarometer bricklet = new BrickletBarometer(uid, ipcon);
-        return bricklet;
+    public BrickletBarometer createDevice(final String uid) {
+        return new BrickletBarometer(uid, ipcon);
     }
 
     @Override
@@ -57,16 +56,14 @@ public class Barometer implements DeviceFactory<BrickletBarometer>, DeviceContro
             barometer.addAirPressureListener((airPressure) -> {
                 sender.sendMessage(envHelper.getTopic(uid) + topic, airPressure);
             });
-        } else {
-            logger.info("Barometer listener disabled");
-        }
-        try {
-            if (enable) {
+            try {
                 barometer.setAirPressureCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            } catch (TimeoutException | NotConnectedException e) {
+                LOGGER.error("Error setting callback period", e);
             }
-        } catch (TimeoutException | NotConnectedException e) {
-            logger.error("Error setting callback period", e);
+        } else {
+            LOGGER.info("{} listener disabled.", getClass().getSimpleName());
         }
-        logger.info("Barometer with uid {} initilized.", uid);
+        LOGGER.info("{} with uid {} initilized.", getClass().getSimpleName(), uid);
     }
 }

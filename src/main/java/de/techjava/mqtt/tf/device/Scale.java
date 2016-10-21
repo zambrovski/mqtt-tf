@@ -22,7 +22,8 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class Scale implements DeviceFactory<BrickletLoadCell>, DeviceController<BrickletLoadCell> {
 
-    private static final Logger logger = LoggerFactory.getLogger(Scale.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Scale.class);
+    
     @Value("${tinkerforge.scale.callbackperiod?: 5000}")
     private long callbackperiod;
     @Value("${tinkerforge.scale.topic?:weight}")
@@ -45,8 +46,7 @@ public class Scale implements DeviceFactory<BrickletLoadCell>, DeviceController<
 
     @Override
     public BrickletLoadCell createDevice(String uid) {
-        BrickletLoadCell sensor = new BrickletLoadCell(uid, ipcon);
-        return sensor;
+        return new BrickletLoadCell(uid, ipcon);
     }
 
     @Override
@@ -56,16 +56,14 @@ public class Scale implements DeviceFactory<BrickletLoadCell>, DeviceController<
             sensor.addWeightListener((weight) -> {
                 sender.sendMessage(envHelper.getTopic(uid) + topic, weight);
             });
-        } else {
-            logger.info("Ultra-sound distance listener disabled");
-        }
-        try {
-            if (enable) {
+            try {
                 sensor.setWeightCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            } catch (TimeoutException | NotConnectedException e) {
+                LOGGER.error("Error setting callback period", e);
             }
-        } catch (TimeoutException | NotConnectedException e) {
-            logger.error("Error setting callback period", e);
+        } else {
+            LOGGER.info("{} listener disabled.", getClass().getSimpleName());
         }
-        logger.info("Scale with uid {} initialized", uid);
+        LOGGER.info("{} with uid {} initilized.", getClass().getSimpleName(), uid);
     }
 }

@@ -12,11 +12,11 @@ import com.tinkerforge.Device;
 public interface DeviceController<T extends Device> {
 
     /**
-     * Perform the setup of the Device.
+     * Perform the setup of the device.
      * @param uid
      *        the uid.
      * @param device
-     *        the device created by a Factory.
+     *        the device created by a factory.
      */
     void setupDevice(final String uid, final T device);
 }

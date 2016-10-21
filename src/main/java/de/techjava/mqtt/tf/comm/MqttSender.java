@@ -29,7 +29,7 @@ public class MqttSender {
     public void sendMessage(final String topic, final Object content) {
 
         final String message = seralizeMessage(topic, content);
-        LOGGER.info("Sending message {} to topic {}.", message, topic);
+        LOGGER.trace("Sending message {}.", message, topic);
         if (message != null) {
             sendMessage(topic, message);
         }
@@ -38,7 +38,6 @@ public class MqttSender {
     public static String seralizeMessage(final String topic, final Object content) {
         final Message message = new Message(content);
         final ObjectMapper mapper = new ObjectMapper();
-
         try {
             return mapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
@@ -48,16 +47,15 @@ public class MqttSender {
     }
 
     private void sendMessage(final String topic, final String content) {
-        LOGGER.trace("Publishing message to {}: {}", topic, content);
-
+        final String targetTopic = topicPrefix + topic;
+        LOGGER.info("Publishing message to {}: {}", targetTopic, content);
         final MqttMessage message = new MqttMessage(content.getBytes());
         message.setQos(qos);
         try {
-            client.publish(topicPrefix + topic, message);
+            client.publish(targetTopic, message);
         } catch (MqttException e) {
             LOGGER.error("Error sending message", e);
         }
-
         LOGGER.trace("Message published");
     }
 }

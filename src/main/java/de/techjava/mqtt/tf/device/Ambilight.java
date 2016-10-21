@@ -22,7 +22,7 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class Ambilight implements DeviceFactory<BrickletAmbientLight>, DeviceController<BrickletAmbientLight> {
 
-    private static final Logger logger = LoggerFactory.getLogger(Ambilight.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Ambilight.class);
 
     @Value("${tinkerforge.ambilight.topic?:illuminance}")
     private String topic;
@@ -45,29 +45,25 @@ public class Ambilight implements DeviceFactory<BrickletAmbientLight>, DeviceCon
     }
 
     @Override
-    public BrickletAmbientLight createDevice(String uid) {
-        BrickletAmbientLight bricklet = new BrickletAmbientLight(uid, ipcon);
-        return bricklet;
+    public BrickletAmbientLight createDevice(final String uid) {
+        return new BrickletAmbientLight(uid, ipcon);
     }
 
     @Override
     public void setupDevice(final String uid, final BrickletAmbientLight bricklet) {
         boolean enable = !envHelper.isDisabled(uid, Ambilight.class);
-
         if (enable) {
             bricklet.addIlluminanceListener((illuminance) -> {
                 sender.sendMessage(envHelper.getTopic(uid) + topic, illuminance);
             });
-        } else {
-            logger.info("Ambilight listener disabled");
-        }
-        try {
-            if (enable) {
+            try {
                 bricklet.setIlluminanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            } catch (TimeoutException | NotConnectedException e) {
+                LOGGER.error("Error setting Illuminance Callback Period", e);
             }
-        } catch (TimeoutException | NotConnectedException e) {
-            logger.error("Error setting Illuminance Callback Period", e);
+        } else {
+            LOGGER.info("{} listener disabled.", getClass().getSimpleName());
         }
-        logger.info("Ambilight sensor with uid {} initialized.", uid);
+        LOGGER.info("{} with uid {} initilized.", getClass().getSimpleName(), uid);
     }
 }

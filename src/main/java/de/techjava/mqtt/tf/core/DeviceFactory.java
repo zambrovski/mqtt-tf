@@ -3,7 +3,7 @@ package de.techjava.mqtt.tf.core;
 import com.tinkerforge.Device;
 
 /**
- * Factory for creating assets.
+ * Factory for creating devices.
  * @author Simon Zambrovski
  */
 public interface DeviceFactory<T extends Device> {

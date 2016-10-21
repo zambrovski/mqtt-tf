@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.tinkerforge.BrickletBarometer;
-import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletTemperature;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
@@ -24,7 +22,7 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class Thermometer implements DeviceFactory<BrickletTemperature>, DeviceController<BrickletTemperature> {
 
-    private Logger logger = LoggerFactory.getLogger(Thermometer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Thermometer.class);
     @Value("${tinkerforge.thermometer.callbackperiod?: 10000}")
     private long callbackperiod;
     @Value("${tinkerforge.thermometer.topic?:temperature}")
@@ -59,17 +57,15 @@ public class Thermometer implements DeviceFactory<BrickletTemperature>, DeviceCo
             sensor.addTemperatureListener((temperature) -> {
                 sender.sendMessage(envHelper.getTopic(uid) + topic, (((Short) temperature).doubleValue()) / 100.0);
             });
-        } else {
-            logger.info("Thermometer listener disabled");
-        }
-        try {
-            if (enable) {
+            try {
                 sensor.setTemperatureCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            } catch (TimeoutException | NotConnectedException e) {
+                LOGGER.error("Error setting callback period", e);
             }
-        } catch (TimeoutException | NotConnectedException e) {
-            logger.error("Error setting callback period", e);
+        } else {
+            LOGGER.info("{} listener disabled.", getClass().getSimpleName());
         }
-        logger.info("Thermometer uid {} initialized!", uid);
+        LOGGER.info("{} with uid {} initilized.", getClass().getSimpleName(), uid);
     }
 
 }

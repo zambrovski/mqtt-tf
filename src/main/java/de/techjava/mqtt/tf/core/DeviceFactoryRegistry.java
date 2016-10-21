@@ -11,26 +11,27 @@ import org.slf4j.LoggerFactory;
 import com.tinkerforge.Device;
 
 /**
- * Registry for asset factories.
+ * Registry for device factories.
+ * 
  * @author Simon Zambrovski
  */
 public class DeviceFactoryRegistry {
 
-    private Map<Integer, DeviceFactory> factories = new HashMap<>();
-    private Map<Integer, List<DeviceController>> controllers = new HashMap<>();
+    private static final Logger LOG = LoggerFactory.getLogger(DeviceFactoryRegistry.class);
+
+    private Map<Integer, DeviceFactory<?>> factories = new HashMap<>();
+    private Map<Integer, List<DeviceController<?>>> controllers = new HashMap<>();
     private Map<String, Device> devices = new HashMap<>();
 
-    private static final Logger logger = LoggerFactory.getLogger(DeviceFactoryRegistry.class);
 
-    public void registerDeviceFactory(final int type, final DeviceFactory factory) {
-        logger.info("Registering new factory {} for device type {}", factory.getClass().getSimpleName(), type);
+    public void registerDeviceFactory(final int type, final DeviceFactory<?> factory) {
+        LOG.info("Registering factory {} for device type {}", factory.getClass().getSimpleName(), type);
         factories.put(Integer.valueOf(type), factory);
-
     }
 
     public void registerDeviceController(final int type, final DeviceController<?> controller) {
-        logger.info("Registering new factory {} for device type {}", controller.getClass().getSimpleName(), type);
-        List<DeviceController> registeredControllers = controllers.get(Integer.valueOf(type));
+        LOG.info("Registering controller {} for device type {}", controller.getClass().getSimpleName(), type);
+        List<DeviceController<?>> registeredControllers = controllers.get(Integer.valueOf(type));
         if (registeredControllers == null) {
             registeredControllers = new ArrayList<>();
             controllers.put(Integer.valueOf(type), registeredControllers);
@@ -38,11 +39,11 @@ public class DeviceFactoryRegistry {
         registeredControllers.add(controller);
     }
 
-    public DeviceFactory getDeviceFactory(final int deviceIdentifier) {
+    public DeviceFactory<?> getDeviceFactory(final int deviceIdentifier) {
         return factories.get(Integer.valueOf(deviceIdentifier));
     }
 
-    public List<DeviceController> getDeviceControllers(final int deviceIdentifier) {
+    public List<DeviceController<?>> getDeviceControllers(final int deviceIdentifier) {
         return controllers.get(Integer.valueOf(deviceIdentifier));
     }
 
@@ -53,5 +54,4 @@ public class DeviceFactoryRegistry {
     public void createdDevice(final String uid, final Device device) {
         this.devices.put(uid, device);
     }
-
 }

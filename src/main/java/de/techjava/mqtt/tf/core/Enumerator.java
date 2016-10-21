@@ -20,7 +20,7 @@ import com.tinkerforge.NotConnectedException;
 @Component
 public class Enumerator {
 
-	private static final Logger logger = LoggerFactory.getLogger(Enumerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Enumerator.class);
 
 	@Autowired
 	private IPConnection ipcon;
@@ -29,9 +29,9 @@ public class Enumerator {
 	public void onApplicationEvent(final ApplicationContextEvent event) {
 		try {
 			ipcon.enumerate();
-			logger.info("Enumeration of connection started.");
+			LOGGER.info("Enumeration of connection started.");
 		} catch (NotConnectedException e) {
-			logger.error("Error enumerating", e);
+			LOGGER.error("Error enumerating", e);
 		}
 	}
 

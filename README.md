@@ -11,7 +11,7 @@ In order to build the software, please run `mvn clean package` from command line
 
 ### Configuration
 
-For configuration, make sure to copy the `application.properties` from `docs` folder and adjust the configuration.
+For configuration, make sure to copy the `application.properties` from `docs` folder to the directory you start from and adjust the configuration.
 
 #### General configuration
 
@@ -53,16 +53,24 @@ In this setup, the three devices with given UIDs are located in cellar and deliv
 #### Device configuration
 
 Currently, the following sensor types are supported:
- - Ambient light
- - Barometer
- - Distance Infra-Red
- - Distance Ultra-Sound
- - Hygrometer
- - LCD 20x4 Buttons
- - Scale
- - Thermometer
- - Thermometer Infra-Red
- - Voltmeter
+
+<table>
+ <thead>
+  <tr><th>Sensor</th><th>Class</th></tr>
+ </thead>
+ <tr><td>Ambient light</td><td>de.techjava.mqtt.tf.device.Ambienlight</td></tr>
+ <tr><td>Barometer</td><td>de.techjava.mqtt.tf.device.Barometer</td></tr>
+ <tr><td>Distance Infra-Red</td><td>de.techjava.mqtt.tf.device.DistanceIRMeter</td></tr>
+ <tr><td>Distance Ultra-Sound</td><td>de.techjava.mqtt.tf.device.DistanceUSMeter</td></tr>
+ <tr><td>Hygrometer</td><td>de.techjava.mqtt.tf.device.Hygrometer</td></tr>
+ <tr><td>LCD 20x4 Buttons</td><td>de.techjava.mqtt.tf.device.LCD20x4</td></tr>
+ <tr><td>LED Strip</td><td>de.techjava.mqtt.tf.device.LedStrip</td></tr>
+ <tr><td>RFID NFC</td><td>de.techjava.mqtt.tf.device.RFIDNFC</td></tr>
+ <tr><td>Scale</td><td>de.techjava.mqtt.tf.device.Scale</td></tr>
+ <tr><td>Thermometer</td><td>de.techjava.mqtt.tf.device.Thermometer</td></tr>
+ <tr><td>Thermometer Infra-Red</td><td>de.techjava.mqtt.tf.device.ThermometerIR</td></tr>
+ <tr><td>Voltmeter</td><td>de.techjava.mqtt.tf.device.Voltmeter</td></tr>
+</table>
  
 In addition, the following actuators are implemented:
  - LCD 20x4 Text and Backlight
@@ -82,9 +90,24 @@ This will configure the ambient light to be checked every 10 seconds and deliver
     # 
     aDc.callbackperiod=10000
 
+By default, all factories are enabled. You can disable them by providing a disable property using the factory class low-case. This will disable a voltmeter factory:
+
+	#
+	# Example to disable a voltmeter
+	#
+	tinkerforge.voltmeter.disabled=true
+
+As an alternative, you cand disable a concrete device:
+
+	#
+	# Example to disable the aDc device
+	#
+	aDc.disabled=true
+
 
 
 
 ### Run
 
-To run the software just run `java -jar <mqtt-tinkerforge-boot-version.jar>
+To run the software just run `java -jar <mqtt-tinkerforge-boot-version.jar>`. 
+

@@ -30,11 +30,14 @@ public class JsonSerializerTest {
     }
 
     @Test
-    public void serializeObjectMessage() {
+    public void serializeObjectMessageWrongJson() {
         String seralizeMessage = MqttSender.seralizeMessage("foo", new Dummy("foo", 17, new HashMap<>(4)));
         assertNull(seralizeMessage);
     }
 
+    /**
+     * Class without getters/setters to create a serialization exception.
+     */
     class Dummy {
         String foo;
         Integer bar;
@@ -45,6 +48,5 @@ public class JsonSerializerTest {
             this.bar = bar;
             this.map = map;
         }
-
     }
 }

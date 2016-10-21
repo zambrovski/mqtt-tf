@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.tinkerforge.BrickletBarometer;
 import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
@@ -23,7 +22,8 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class DistanceIRMeter implements DeviceFactory<BrickletDistanceIR>, DeviceController<BrickletDistanceIR> {
 
-    private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DistanceIRMeter.class);
+    
     @Value("${tinkerforge.distance.ir.callbackperiod?:500}")
     private long callbackperiod;
     @Value("${tinkerforge.distance.ir.topic?:distance}")
@@ -46,8 +46,7 @@ public class DistanceIRMeter implements DeviceFactory<BrickletDistanceIR>, Devic
 
     @Override
     public BrickletDistanceIR createDevice(String uid) {
-        BrickletDistanceIR bricklet = new BrickletDistanceIR(uid, ipcon);
-        return bricklet;
+        return new BrickletDistanceIR(uid, ipcon);
     }
 
     @Override
@@ -59,16 +58,14 @@ public class DistanceIRMeter implements DeviceFactory<BrickletDistanceIR>, Devic
             sensor.addDistanceListener((distance) -> {
                 sender.sendMessage(envHelper.getTopic(uid) + topic, distance);
             });
-        } else {
-            logger.info("IR distance listener disabled");
-        }
-        try {
-            if (enable) {
+            try {
                 sensor.setDistanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            } catch (TimeoutException | NotConnectedException e) {
+                LOGGER.error("Error setting callback period", e);
             }
-        } catch (TimeoutException | NotConnectedException e) {
-            logger.error("Error setting callback period", e);
+        } else {
+            LOGGER.info("{} listener disabled.", getClass().getSimpleName());
         }
-        logger.info("IR distance with uid {} initialized", uid);
+        LOGGER.info("{} with uid {} initilized.", getClass().getSimpleName(), uid);
     }
 }

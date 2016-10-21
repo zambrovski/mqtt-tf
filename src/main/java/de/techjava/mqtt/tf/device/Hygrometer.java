@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.tinkerforge.BrickletBarometer;
-import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletHumidity;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
@@ -24,7 +22,8 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class Hygrometer implements DeviceFactory<BrickletHumidity>, DeviceController<BrickletHumidity> {
 
-    private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(DistanceIRMeter.class);
+    
     @Value("${tinkerforge.humidity.callbackperiod?:10000}")
     private long callbackperiod;
     @Value("${tinkerforge.humidity.topic?:humidity}")
@@ -47,8 +46,7 @@ public class Hygrometer implements DeviceFactory<BrickletHumidity>, DeviceContro
 
     @Override
     public BrickletHumidity createDevice(String uid) {
-        BrickletHumidity bricklet = new BrickletHumidity(uid, ipcon);
-        return bricklet;
+        return new BrickletHumidity(uid, ipcon);
     }
 
     @Override
@@ -58,16 +56,14 @@ public class Hygrometer implements DeviceFactory<BrickletHumidity>, DeviceContro
             sensor.addHumidityListener((humidity) -> {
                 sender.sendMessage(envHelper.getTopic(uid) + topic, humidity);
             });
-        } else {
-            logger.info("Hygrometer listener disabled");
-        }
-        try {
-            if (enable) {
+            try {
                 sensor.setHumidityCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            } catch (TimeoutException | NotConnectedException e) {
+                LOGGER.error("Error setting callback period", e);
             }
-        } catch (TimeoutException | NotConnectedException e) {
-            logger.error("Error setting callback period", e);
+        } else {
+            LOGGER.info("{} listener disabled.", getClass().getSimpleName());
         }
-        logger.info("Hygrometer with uid {} initialized", uid);
+        LOGGER.info("{} with uid {} initilized.", getClass().getSimpleName(), uid);
     }
 }

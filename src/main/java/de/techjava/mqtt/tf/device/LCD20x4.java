@@ -10,8 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.tinkerforge.BrickletBarometer;
-import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletLCD20x4;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
@@ -29,7 +27,8 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 public class LCD20x4 implements DeviceFactory<BrickletLCD20x4>, DeviceController<BrickletLCD20x4> {
 
     private static final String EMPTY_LINE = "                    ";
-    private static final Logger logger = LoggerFactory.getLogger(LCD20x4.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LCD20x4.class);
+    
     @Value("${tinkerforge.lcd20x4.button.topic?:lcd/button}")
     private String buttonTopic;
     @Value("${tinkerforge.lcd20x4.backlight.topic?:lcd/backlight}")
@@ -62,10 +61,11 @@ public class LCD20x4 implements DeviceFactory<BrickletLCD20x4>, DeviceController
 
     @Override
     public BrickletLCD20x4 createDevice(final String uid) {
-        BrickletLCD20x4 bricklet = new BrickletLCD20x4(uid, ipcon);
-        return bricklet;
+        return new BrickletLCD20x4(uid, ipcon);
     }
 
+    
+    // TODO: check enablement!
     @Override
     public void setupDevice(final String uid, final BrickletLCD20x4 lcd) {
         MqttCallback callback = createCallback(lcd, backlightTopic, text1Topic, text2Topic, text3Topic, text4Topic);
@@ -80,7 +80,7 @@ public class LCD20x4 implements DeviceFactory<BrickletLCD20x4>, DeviceController
         lcd.addButtonReleasedListener((button) -> {
             sender.sendMessage(realm.getTopic(uid) + buttonTopic + "/" + button, Boolean.FALSE);
         });
-        logger.info("LCD with uid {} initilized.", uid);
+        LOGGER.info("LCD with uid {} initilized.", uid);
     }
 
     /**
@@ -101,7 +101,7 @@ public class LCD20x4 implements DeviceFactory<BrickletLCD20x4>, DeviceController
             public void messageArrived(final String topic, final MqttMessage message) throws Exception {
 
                 final String value = new String(message.getPayload());
-                logger.info("LCD shall display {} on topic {}", value, topic);
+                LOGGER.info("LCD shall display {} on topic {}", value, topic);
                 try {
                     if (topic.endsWith(backlightTopic)) {
                         boolean lightOn = Boolean.parseBoolean(value);
@@ -121,7 +121,7 @@ public class LCD20x4 implements DeviceFactory<BrickletLCD20x4>, DeviceController
                     }
                 } catch (
                          TimeoutException | NotConnectedException e) {
-                    logger.error("Error writing text to LCD", e);
+                    LOGGER.error("Error writing text to LCD", e);
                 }
 
             }

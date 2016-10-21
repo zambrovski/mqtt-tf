@@ -1,5 +1,6 @@
 package de.techjava.mqtt.tf.core;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -68,30 +69,26 @@ public class EnvironmentHelper {
     /**
      * Retrieves the status of the measurement type listener for given type and uid.
      * 
-     * @param uid
-     *            uid of device
+     * @param classifier
+     *            uid of device or uid.sensor
      * @param typeProperty
      *            type of
      * @return true if listener should be disabled, false otherwise
      */
-    public <T extends DeviceFactory> boolean isDisabled(String uid, Class<T> deviceFactory) {
+    public <T extends DeviceFactory<?>> boolean isDisabled(final String classifier, final Class<T> deviceFactory) {
         // <device-uid>.disabled=true
         // <device-uid>.ambient.disabled=true
-        final String instanceUidProperty = env.getProperty(uid + ".disabled");
-        if (instanceUidProperty != null && Boolean.parseBoolean(instanceUidProperty)) {
+        final String instanceUidProperty = env.getProperty(classifier + ".disabled");
+        
+        if (BooleanUtils.toBoolean(instanceUidProperty)) {
             return true;
         }
-        // ${tinkerforge.temperature.disabled}=true
-        // ${tinkerforge.temperature.ambient.disabled}=true
-        final String factoryProperty = "tinkerforge." + deviceFactory.getSimpleName() + ".disabled";
-        String propertyValue = env.getProperty(factoryProperty);
-        if (propertyValue != null && Boolean.parseBoolean(propertyValue)) {
-            return true;
-        }
-
-        return false;
+        // tinkerforge.temperature.disabled=true
+        final String factoryProperty = "tinkerforge." + deviceFactory.getSimpleName().toLowerCase() + ".disabled";
+        
+        return BooleanUtils.toBoolean(env.getProperty(factoryProperty));        
     }
-
+    
     /**
      * Parses a long property.
      * 

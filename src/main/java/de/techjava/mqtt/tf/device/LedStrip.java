@@ -23,7 +23,7 @@ import de.techjava.mqtt.tf.core.EnvironmentHelper;
 @Component
 public class LedStrip implements DeviceFactory<BrickletLEDStrip>, DeviceController<BrickletLEDStrip> {
 
-    private static final Logger logger = LoggerFactory.getLogger(LedStrip.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LedStrip.class);
 
     private static final int NUM_LEDS = 16;
     private static int rIndex = 0;
@@ -55,8 +55,7 @@ public class LedStrip implements DeviceFactory<BrickletLEDStrip>, DeviceControll
 
     @Override
     public BrickletLEDStrip createDevice(final String uid) {
-        final BrickletLEDStrip ls = new BrickletLEDStrip(uid, ipcon);
-        return ls;
+        return new BrickletLEDStrip(uid, ipcon);
     }
 
     @Override
@@ -83,19 +82,18 @@ public class LedStrip implements DeviceFactory<BrickletLEDStrip>, DeviceControll
                         try {
                             ls.setRGBValues(0, (short) NUM_LEDS, r, g, b);
                         } catch (Exception e) {
-                            logger.error("Error setting LED", e);
+                            LOGGER.error("Error setting LED", e);
                         }
                     }
                 });
 
                 // Set initial rgb values to get started
                 ls.setRGBValues(0, (short) NUM_LEDS, r, g, b);
-                logger.info("Led Strip updated.");
+                LOGGER.info("Led Strip updated.");
             }
 
         };
         receiver.addListener(realm.getTopic(uid) + topic, callback);
-
-        logger.info("Led Strip sensor with uid {} initialized.", uid);
+        LOGGER.info("Led Strip sensor with uid {} initialized.", uid);
     }
 }
