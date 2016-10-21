@@ -14,12 +14,13 @@ import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
+import de.techjava.mqtt.tf.core.DeviceController;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
-public class Ambilight implements DeviceFactory {
+public class Ambilight implements DeviceFactory<BrickletAmbientLight>, DeviceController<BrickletAmbientLight> {
 
     private static final Logger logger = LoggerFactory.getLogger(Ambilight.class);
 
@@ -27,6 +28,7 @@ public class Ambilight implements DeviceFactory {
     private String topic;
     @Value("${tinkerforge.ambilight.callbackperiod?:10000}")
     private long callbackperiod;
+
     @Autowired
     private IPConnection ipcon;
     @Autowired
@@ -39,16 +41,30 @@ public class Ambilight implements DeviceFactory {
     @PostConstruct
     public void init() {
         registry.registerDeviceFactory(BrickletAmbientLight.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickletAmbientLight.DEVICE_IDENTIFIER, this);
     }
 
     @Override
-    public void createDevice(String uid) {
-        final BrickletAmbientLight bricklet = new BrickletAmbientLight(uid, ipcon);
-        bricklet.addIlluminanceListener((illuminance) -> {
-            sender.sendMessage(envHelper.getTopic(uid) + topic, illuminance);
-        });
+    public BrickletAmbientLight createDevice(String uid) {
+        BrickletAmbientLight bricklet = new BrickletAmbientLight(uid, ipcon);
+        return bricklet;
+    }
+
+    @Override
+    public void setupDevice(final String uid, final BrickletAmbientLight bricklet) {
+        boolean enable = !envHelper.isDisabled(uid, Ambilight.class);
+
+        if (enable) {
+            bricklet.addIlluminanceListener((illuminance) -> {
+                sender.sendMessage(envHelper.getTopic(uid) + topic, illuminance);
+            });
+        } else {
+            logger.info("Ambilight listener disabled");
+        }
         try {
-            bricklet.setIlluminanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            if (enable) {
+                bricklet.setIlluminanceCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            }
         } catch (TimeoutException | NotConnectedException e) {
             logger.error("Error setting Illuminance Callback Period", e);
         }

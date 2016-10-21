@@ -8,18 +8,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.tinkerforge.BrickletBarometer;
+import com.tinkerforge.BrickletDistanceIR;
 import com.tinkerforge.BrickletHumidity;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.NotConnectedException;
 import com.tinkerforge.TimeoutException;
 
 import de.techjava.mqtt.tf.comm.MqttSender;
+import de.techjava.mqtt.tf.core.DeviceController;
 import de.techjava.mqtt.tf.core.DeviceFactory;
 import de.techjava.mqtt.tf.core.DeviceFactoryRegistry;
 import de.techjava.mqtt.tf.core.EnvironmentHelper;
 
 @Component
-public class Hygrometer implements DeviceFactory {
+public class Hygrometer implements DeviceFactory<BrickletHumidity>, DeviceController<BrickletHumidity> {
 
     private Logger logger = LoggerFactory.getLogger(DistanceIRMeter.class);
     @Value("${tinkerforge.humidity.callbackperiod?:10000}")
@@ -39,16 +42,29 @@ public class Hygrometer implements DeviceFactory {
     @PostConstruct
     public void init() {
         registry.registerDeviceFactory(BrickletHumidity.DEVICE_IDENTIFIER, this);
+        registry.registerDeviceController(BrickletHumidity.DEVICE_IDENTIFIER, this);
     }
 
     @Override
-    public void createDevice(String uid) {
-        final BrickletHumidity sensor = new BrickletHumidity(uid, ipcon);
-        sensor.addHumidityListener((humidity) -> {
-            sender.sendMessage(envHelper.getTopic(uid) + topic, humidity);
-        });
+    public BrickletHumidity createDevice(String uid) {
+        BrickletHumidity bricklet = new BrickletHumidity(uid, ipcon);
+        return bricklet;
+    }
+
+    @Override
+    public void setupDevice(final String uid, final BrickletHumidity sensor) {
+        boolean enable = !envHelper.isDisabled(uid, Hygrometer.class);
+        if (enable) {
+            sensor.addHumidityListener((humidity) -> {
+                sender.sendMessage(envHelper.getTopic(uid) + topic, humidity);
+            });
+        } else {
+            logger.info("Hygrometer listener disabled");
+        }
         try {
-            sensor.setHumidityCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            if (enable) {
+                sensor.setHumidityCallbackPeriod(envHelper.getCallback(uid, callbackperiod));
+            }
         } catch (TimeoutException | NotConnectedException e) {
             logger.error("Error setting callback period", e);
         }

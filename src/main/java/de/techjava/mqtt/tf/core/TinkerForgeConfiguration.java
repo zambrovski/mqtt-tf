@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 import com.tinkerforge.AlreadyConnectedException;
+import com.tinkerforge.Device;
 import com.tinkerforge.IPConnection;
 import com.tinkerforge.IPConnectionBase;
 
@@ -23,7 +23,6 @@ import de.techjava.mqtt.tf.device.MasterBrick;
  * Main configuration of TF components, factories registry and connection.
  * 
  * @author Simon Zambrovski
- *
  */
 @Configuration
 @EnableAutoConfiguration
@@ -36,11 +35,10 @@ public class TinkerForgeConfiguration {
     private String host;
     @Value("${tinkerforge.port}")
     private int port;
-    @Autowired
-    private EnvironmentHelper envHelper;
 
     private IPConnection ipConnection;
 
+    @SuppressWarnings("unchecked")
     @Bean(destroyMethod = "disconnect")
     @DependsOn("registry")
     public IPConnection getIPConnection(final DeviceFactoryRegistry registry) {
@@ -63,7 +61,27 @@ public class TinkerForgeConfiguration {
             ipConnection.addEnumerateListener((uid, connectedUid, position, hardwareVersion, firmwareVersion, deviceIdentifier, enumerationType) -> {
                 switch (enumerationType) {
                 case IPConnection.ENUMERATION_TYPE_AVAILABLE:
-                    connectDevices(registry, uid, deviceIdentifier);
+
+                    final DeviceFactory<?> factory = registry.getDeviceFactory(deviceIdentifier);
+                    if (factory != null) {
+                        final Device device = factory.createDevice(uid);
+                        registry.createdDevice(uid, device);
+
+                        // Configure the device
+                        @SuppressWarnings("rawtypes")
+                        final List<DeviceController> controllers = registry.getDeviceControllers(deviceIdentifier);
+                        if (controllers != null) {
+                            for (@SuppressWarnings("rawtypes")
+                            DeviceController deviceController : controllers) {
+                                logger.info("Added Device Controller for uid {}", uid);
+                                deviceController.setupDevice(uid, device);
+                            }
+                        } else {
+                            logger.info("No controllers (listener configurations) found for device type {}", deviceIdentifier);
+                        }
+                    } else {
+                        logger.error("No factory found for device type {}", deviceIdentifier);
+                    }
                     break;
                 case IPConnection.ENUMERATION_TYPE_CONNECTED:
                     logger.info("Connected new Brick with uid {}", uid);
@@ -75,27 +93,12 @@ public class TinkerForgeConfiguration {
 
             ipConnection.setAutoReconnect(true);
         }
+
         // establish connection.
         connect();
 
         return ipConnection;
-    }
 
-    private void connectDevices(final DeviceFactoryRegistry registry, String uid, int deviceIdentifier) {
-        final List<DeviceFactory> factories = registry.getDeviceFactory(deviceIdentifier);
-        if (factories != null) {
-            for (final DeviceFactory factory : factories) {
-                final boolean disabled = envHelper.isDisabled(uid, factory.getClass());
-                if (disabled) {
-                    logger.info("Skipping {} for {}.", factory.getClass().getSimpleName(), uid);
-                } else {
-                    factory.createDevice(uid);
-                }
-            }
-
-        } else {
-            logger.error("No factory found for device type {}", deviceIdentifier);
-        }
     }
 
     /**
